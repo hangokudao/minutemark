@@ -1,0 +1,9 @@
+.gcloudignore
+.git
+.env
+output/
+samples/*
+!samples/korean/
+!samples/korean/*.wav
+__pycache__/
+tests/__pycache__/

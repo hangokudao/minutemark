@@ -1,0 +1,11 @@
+sample_id	meeting_id	start_sec	duration_sec	expected_decision
+ami-01	ES2015a	889	28	Set the absolute maximum cost at 12.50 euros.
+ami-02	ES2006c	1442	20	Use an LCD display with a spinning wheel.
+ami-03	ES2009a	790	24	Build a universal remote control.
+ami-04	ES2010b	954	25	Support television only, excluding DVD, TiVo, and stereo.
+ami-05	ES2010d	641	20	The design is under the cost limit and can proceed to production.
+ami-06	ES2015b	1716	22	Exclude LCD, teletext, and voice recognition.
+ami-07	ES2015c	1726	34	Use a plastic case coated in rubber.
+ami-08	ES2016c	1468	30	Use batteries instead of solar cells.
+ami-09	ES2016d	1063	24	Use an advanced chip-on-print.
+ami-10	IS1001c	851	29	Keep the scroll wheel in the design.

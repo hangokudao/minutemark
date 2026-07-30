@@ -1,0 +1,11 @@
+file 'slide-01.png'
+duration 10
+file 'slide-02.png'
+duration 15
+file 'slide-03.png'
+duration 15
+file 'slide-04.png'
+duration 14
+file 'slide-05.png'
+duration 12
+file 'slide-05.png'

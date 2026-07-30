@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="실제 Whisper와 LLM이 회의 음성을 전사하고 결정과 할 일을 근거와 함께 추출합니다."
+    />
+    <title>MinuteMark · AI 회의 노트</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header class="app-bar">
+      <a class="brand" href="/" aria-label="MinuteMark 홈">
+        <span class="brand-mark" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+        </span>
+        <span>MinuteMark</span>
+      </a>
+      <div class="model-badge">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span id="budget-status">실제 AI 추론 · 월 $1 제한</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="workspace-intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">AI MEETING NOTES</p>
+          <h1 id="page-title">회의에서 정해진 것만,<br />근거와 함께.</h1>
+          <p class="intro-copy">
+            음성을 올리면 Whisper가 전사하고, A6API의 Claude가 결정과
+            할 일을 구조화합니다. 결과를 누르면 실제 발화 구간으로 이동합니다.
+          </p>
+        </div>
+        <dl class="proof-list" aria-label="제품 처리 방식">
+          <div>
+            <dt>01</dt>
+            <dd>음성은 로컬에서 전사</dd>
+          </div>
+          <div>
+            <dt>02</dt>
+            <dd>전사문만 AI로 구조화</dd>
+          </div>
+          <div>
+            <dt>03</dt>
+            <dd>근거 구간을 서버가 검증</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="input-panel" aria-labelledby="input-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">새 분석</p>
+            <h2 id="input-title">회의 음성을 선택하세요</h2>
+          </div>
+          <p>WAV, MP3, M4A, OGG, FLAC, WEBM · 최대 20MB · 2분</p>
+        </div>
+
+        <div class="input-grid">
+          <div
+            class="drop-zone"
+            id="drop-zone"
+            aria-describedby="drop-help"
+          >
+            <input
+              id="audio-file"
+              type="file"
+              accept=".wav,.mp3,.m4a,.ogg,.flac,.webm,audio/*"
+              hidden
+            />
+            <span class="upload-icon" aria-hidden="true">↑</span>
+            <strong id="drop-label">파일을 끌어놓거나 선택</strong>
+            <span id="drop-help">내 파일은 분석 후 서버에 저장하지 않습니다.</span>
+            <button class="button button-primary" id="choose-file" type="button">
+              오디오 선택
+            </button>
+          </div>
+
+          <div class="sample-column">
+            <div class="sample-heading">
+              <h3>바로 볼 수 있는 공개 샘플</h3>
+              <span>자연스러운 한국어 발화</span>
+            </div>
+            <div id="sample-list" class="sample-list" aria-live="polite">
+              <div class="sample-skeleton"></div>
+              <div class="sample-skeleton"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="status-panel"
+        class="status-panel"
+        aria-live="polite"
+        hidden
+      >
+        <div class="spinner" aria-hidden="true"></div>
+        <div>
+          <strong id="status-title">AI가 회의를 분석하고 있습니다</strong>
+          <p id="status-copy">
+            로컬 전사 후 결정과 할 일을 구조화합니다. 약 20–40초 걸립니다.
+          </p>
+        </div>
+        <span id="elapsed-time">00:00</span>
+      </section>
+
+      <section id="error-panel" class="error-panel" role="alert" hidden>
+        <div>
+          <strong>분석을 완료하지 못했습니다</strong>
+          <p id="error-message"></p>
+        </div>
+        <button class="button button-secondary" id="retry-button" type="button">
+          다시 시도
+        </button>
+      </section>
+
+      <section id="result-panel" class="result-panel" hidden>
+        <div class="result-header">
+          <div>
+            <p class="section-kicker">분석 완료</p>
+            <h2 id="result-title">회의 결과</h2>
+            <p id="source-attribution" class="source-attribution"></p>
+          </div>
+          <div id="result-metrics" class="result-metrics"></div>
+        </div>
+
+        <audio id="audio-player" controls preload="metadata"></audio>
+
+        <div class="result-layout">
+          <article class="transcript-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker">TRANSCRIPT</p>
+                <h3>타임스탬프 전사</h3>
+              </div>
+              <span id="segment-count"></span>
+            </div>
+            <div id="transcript-list" class="transcript-list"></div>
+          </article>
+
+          <aside class="insights-panel">
+            <section aria-labelledby="decisions-title">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">DECISIONS</p>
+                  <h3 id="decisions-title">결정</h3>
+                </div>
+                <span id="decision-count" class="count-badge"></span>
+              </div>
+              <div id="decision-list" class="insight-list"></div>
+            </section>
+
+            <section aria-labelledby="actions-title">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">ACTION ITEMS</p>
+                  <h3 id="actions-title">할 일</h3>
+                </div>
+                <span id="action-count" class="count-badge"></span>
+              </div>
+              <div id="action-list" class="insight-list"></div>
+            </section>
+
+            <section class="verification" aria-labelledby="verification-title">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">GROUNDING</p>
+                  <h3 id="verification-title">근거 검증</h3>
+                </div>
+                <span id="grounding-status"></span>
+              </div>
+              <p id="model-detail"></p>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Docker-only portfolio MVP · 실제 음성·실제 추론·토큰 비용 기록</p>
+    </footer>
+  </body>
+</html>
