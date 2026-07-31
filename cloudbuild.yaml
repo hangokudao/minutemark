@@ -33,6 +33,8 @@ steps:
       - --rm
       - --volume
       - /workspace/tests:/tests:ro
+      - --volume
+      - /workspace/samples:/samples:ro
       - --entrypoint
       - python
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$COMMIT_SHA
