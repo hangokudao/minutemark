@@ -135,8 +135,23 @@ docker compose run --rm -v ./tests:/tests:ro --entrypoint python web \
 ```
 
 현재 A6 400 폴백, 일시적 502 재시도, 근거 정규화·검증, 예산·용량 보호선,
-샘플 길이, 오류 정보 정제, 공개 샘플 저작자 표시를 포함한 테스트 12개가
-통과합니다.
+샘플 길이, 오류 정보 정제, 공개 샘플 저작자 표시와 배포 커밋 확인을 포함한
+테스트 13개가 통과합니다.
+
+## 자동 배포
+
+GitHub `main`이 배포 정본입니다. `main`에 병합하면 Cloud Build가
+[`cloudbuild.yaml`](./cloudbuild.yaml)에 따라 다음 순서로 실행합니다.
+
+1. Docker 이미지 빌드
+2. 회귀 테스트 13개
+3. Git 커밋 SHA로 이미지 태그 후 Artifact Registry에 push
+4. 기존 Cloud Run `minutemark` 서비스에 배포
+
+`/api/health`의 `commit` 값과 GitHub `main` SHA가 같으면 배포가 동기화된
+상태입니다. 기존 환경변수와 Secret Manager 연결은 유지하고, 최대 인스턴스
+`1`과 동시 처리 `1`도 배포 명령에서 다시 고정합니다. 수동
+[`cloudrun-deploy.sh`](./cloudrun-deploy.sh)는 최초 설정이나 복구용입니다.
 
 ## 문서
 

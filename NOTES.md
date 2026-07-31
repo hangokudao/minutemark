@@ -126,6 +126,12 @@ gcloud run services logs read minutemark \
   --limit 50
 ```
 
+일상 배포는 GitHub `main`과 연결된 Cloud Build 트리거
+`minutemark-main-deploy`가 담당한다. Docker 빌드와 회귀 테스트가 통과한
+커밋만 Cloud Run에 배포하며, `/api/health`의 `commit` 값으로 GitHub
+`main`과 같은 버전인지 확인한다. `cloudrun-deploy.sh`는 최초 설정이나
+자동 배포 복구용으로만 사용한다.
+
 새 버전이 실패하면 Cloud Run 콘솔의 `Revisions`에서 이전 정상 revision으로
 트래픽을 되돌린다. 즉시 공개를 중단하려면 다음 명령으로 비인증 접근을 제거한다.
 
