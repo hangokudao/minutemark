@@ -10,6 +10,7 @@ PROJECT_ID=$1
 SERVICE_NAME=${2:-minutemark}
 REGION=${3:-asia-northeast3}
 SECRET_NAME=minutemark-a6-api-key
+DEPLOY_COMMIT=$(git rev-parse HEAD 2>/dev/null || printf manual)
 
 ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format='value(account)' | head -n 1)
 if [ -z "$ACCOUNT" ]; then
@@ -40,5 +41,5 @@ gcloud run deploy "$SERVICE_NAME" \
   --min 0 \
   --max 1 \
   --timeout 180 \
-  --set-env-vars "A6_API_BASE=https://api.a6api.com/v1,A6_MODEL=claude-sonnet-5,A6_VENDOR_ID=1263,A6_INPUT_USD_PER_M=0.0180,A6_OUTPUT_USD_PER_M=0.0900,A6_RUN_BUDGET_USD=1.0,A6_REQUEST_RESERVE_USD=0.01,A6_REQUEST_TIMEOUT_SECONDS=60,WHISPER_LANGUAGE=auto,MAX_AUDIO_DURATION_SECONDS=120,MAX_ANALYSES_PER_INSTANCE=50,BUDGET_PERSISTENCE=ephemeral" \
+  --set-env-vars "APP_COMMIT_SHA=${DEPLOY_COMMIT},A6_API_BASE=https://api.a6api.com/v1,A6_MODEL=claude-sonnet-5,A6_VENDOR_ID=1263,A6_INPUT_USD_PER_M=0.0180,A6_OUTPUT_USD_PER_M=0.0900,A6_RUN_BUDGET_USD=1.0,A6_REQUEST_RESERVE_USD=0.01,A6_REQUEST_TIMEOUT_SECONDS=60,WHISPER_LANGUAGE=auto,MAX_AUDIO_DURATION_SECONDS=120,MAX_ANALYSES_PER_INSTANCE=50,BUDGET_PERSISTENCE=ephemeral" \
   --set-secrets "A6_API_KEY=${SECRET_NAME}:latest"

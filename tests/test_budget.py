@@ -15,6 +15,14 @@ from pipeline import (
 )
 
 
+class HealthTest(unittest.TestCase):
+    def test_reports_deployed_commit(self):
+        self.assertEqual(
+            app.health(),
+            {"status": "ok", "commit": app.APP_COMMIT_SHA},
+        )
+
+
 class MonthlyBudgetTest(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
