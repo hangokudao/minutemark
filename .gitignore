@@ -8,3 +8,4 @@ samples/*
 !samples/.gitkeep
 !samples/korean/
 !samples/korean/*.wav
+docs/demo/minutemark-evidence-reel.mp4

@@ -1,0 +1,65 @@
+services:
+  web:
+    image: local-meeting-notes-day1
+    build: .
+    entrypoint: ["uvicorn"]
+    command: ["app:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      A6_API_BASE: ${A6_API_BASE:-https://api.a6api.com/v1}
+      A6_API_KEY: ${A6_API_KEY:?A6_API_KEY를 .env에 설정하세요}
+      A6_MODEL: ${A6_MODEL:-claude-sonnet-5}
+      A6_VENDOR_ID: ${A6_VENDOR_ID:-1263}
+      A6_INPUT_USD_PER_M: ${A6_INPUT_USD_PER_M:-0.0180}
+      A6_OUTPUT_USD_PER_M: ${A6_OUTPUT_USD_PER_M:-0.0900}
+      A6_RUN_BUDGET_USD: ${A6_RUN_BUDGET_USD:-1.0}
+      A6_REQUEST_RESERVE_USD: ${A6_REQUEST_RESERVE_USD:-0.01}
+      A6_REQUEST_TIMEOUT_SECONDS: ${A6_REQUEST_TIMEOUT_SECONDS:-60}
+      WHISPER_MODEL: small
+      WHISPER_CACHE: /models/whisper
+      WHISPER_LANGUAGE: ${WHISPER_LANGUAGE:-auto}
+      KOREAN_SAMPLE_DIR: /samples/korean
+      MAX_AUDIO_DURATION_SECONDS: ${MAX_AUDIO_DURATION_SECONDS:-120}
+      MAX_ANALYSES_PER_INSTANCE: ${MAX_ANALYSES_PER_INSTANCE:-0}
+      BUDGET_DB: /data/budget.sqlite3
+      BUDGET_PERSISTENCE: persistent
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./samples:/samples:ro
+      - whisper-models:/models/whisper
+      - budget-data:/data
+
+  pipeline:
+    image: local-meeting-notes-day1
+    build: .
+    entrypoint: ["python", "/app/pipeline.py"]
+    environment:
+      A6_API_BASE: ${A6_API_BASE:-https://api.a6api.com/v1}
+      A6_API_KEY: ${A6_API_KEY:?A6_API_KEY를 .env에 설정하세요}
+      A6_MODEL: ${A6_MODEL:-claude-sonnet-5}
+      A6_VENDOR_ID: ${A6_VENDOR_ID:-1263}
+      A6_INPUT_USD_PER_M: ${A6_INPUT_USD_PER_M:-0.0180}
+      A6_OUTPUT_USD_PER_M: ${A6_OUTPUT_USD_PER_M:-0.0900}
+      A6_RUN_BUDGET_USD: ${A6_RUN_BUDGET_USD:-1.0}
+      WHISPER_MODEL: small
+      WHISPER_CACHE: /models/whisper
+      WHISPER_LANGUAGE: ${WHISPER_LANGUAGE:-auto}
+      MIN_AUDIO_FILES: ${MIN_AUDIO_FILES:-2}
+      SAMPLE_DIR: /samples
+      OUTPUT_DIR: /output
+    volumes:
+      - ./samples:/samples:ro
+      - ./output:/output
+      - whisper-models:/models/whisper
+  sample-downloader:
+    image: local-meeting-notes-day1
+    build:
+      context: .
+      target: sample-tools
+    entrypoint: ["/app/download-public-samples.sh"]
+    volumes:
+      - ./samples:/samples
+
+volumes:
+  whisper-models:
+  budget-data:
