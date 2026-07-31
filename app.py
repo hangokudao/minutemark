@@ -37,6 +37,7 @@ BUDGET_PERSISTENCE = os.environ.get(
 A6_REQUEST_RESERVE_USD = float(
     os.environ.get("A6_REQUEST_RESERVE_USD", "0.01")
 )
+APP_COMMIT_SHA = os.environ.get("APP_COMMIT_SHA", "local")
 MAX_AUDIO_DURATION_SECONDS = float(
     os.environ.get("MAX_AUDIO_DURATION_SECONDS", "120")
 )
@@ -272,7 +273,7 @@ def index() -> FileResponse:
 
 @app.get("/api/health")
 def health() -> dict:
-    return {"status": "ok"}
+    return {"status": "ok", "commit": APP_COMMIT_SHA}
 
 
 @app.get("/api/budget")
