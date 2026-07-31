@@ -4,7 +4,7 @@ import tempfile
 import unittest
 import urllib.error
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import app
 from pipeline import (
@@ -70,6 +70,39 @@ class AudioInputTest(unittest.IsolatedAsyncioTestCase):
             "오디오 파일을 읽을 수 없습니다. "
             "올바른 오디오 파일인지 확인해 주세요.",
         )
+
+    @patch("app.run_in_threadpool", new_callable=AsyncMock)
+    async def test_unexpected_value_error_hides_internal_details(
+        self, run_in_threadpool
+    ):
+        run_in_threadpool.side_effect = ValueError(
+            "decoder failed at /tmp/private-audio.wav"
+        )
+        audio = app.UploadFile(
+            filename="valid-name.wav",
+            file=io.BytesIO(b"RIFF"),
+        )
+
+        with self.assertRaises(app.HTTPException) as raised:
+            await app.analyze_upload(audio)
+
+        self.assertEqual(raised.exception.status_code, 422)
+        self.assertEqual(
+            raised.exception.detail,
+            "오디오 파일을 처리할 수 없습니다. "
+            "올바른 오디오 파일인지 확인해 주세요.",
+        )
+        self.assertNotIn("/tmp", raised.exception.detail)
+
+    def test_public_samples_include_complete_attribution(self):
+        for sample in app.SAMPLES.values():
+            self.assertTrue(sample["author"])
+            self.assertEqual(
+                sample["license"],
+                "Creative Commons Attribution (CC BY)",
+            )
+            self.assertTrue(sample["license_url"].startswith("https://"))
+            self.assertIn("WAV 변환", sample["modification"])
 
 
 class GroundingOutputTest(unittest.TestCase):

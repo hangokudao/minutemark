@@ -43,10 +43,14 @@ docker compose run --rm sample-downloader
 `Creative Commons Attribution license (reuse allowed)`를 확인했다. 전체
 영상을 재배포하지 않고 판정에 필요한 구간만 16 kHz mono WAV로 변환했다.
 
-| 로컬 파일 | 원본 | 사용 구간 | 검증 목적 |
-|---|---|---:|---|
-| `ko-01-action.wav` | [[생방송] 이재명 당대표 주재 더불어민주당 최고위원회의](https://www.youtube.com/watch?v=-WZ18GPkDJg) | 2058–2092초 | 구체적인 후속 작업 추출 |
-| `ko-02-decision.wav` | [[충북 시사토론 창] 위기의 KTX 오송역, 대응방안은?](https://www.youtube.com/watch?v=Nm0lLy1crg0) | 814–848초 | 이미 합의된 결정 추출 |
+| 로컬 파일 | 원본·저작자 | 라이선스·가공 | 사용 구간 | 검증 목적 |
+|---|---|---|---:|---|
+| `ko-01-action.wav` | [[생방송] 이재명 당대표 주재 더불어민주당 최고위원회의](https://www.youtube.com/watch?v=-WZ18GPkDJg) · 시사발전소 현장LIVE | [YouTube Creative Commons Attribution (CC BY)](https://support.google.com/youtube/answer/2797468) · 34초 발췌, 16 kHz mono WAV 변환 | 2058–2092초 | 구체적인 후속 작업 추출 |
+| `ko-02-decision.wav` | [[충북 시사토론 창] 위기의 KTX 오송역, 대응방안은?](https://www.youtube.com/watch?v=Nm0lLy1crg0) · 안녕!MBC충북 | [YouTube Creative Commons Attribution (CC BY)](https://support.google.com/youtube/answer/2797468) · 34초 발췌, 16 kHz mono WAV 변환 | 814–848초 | 이미 합의된 결정 추출 |
+
+위 두 WAV는 원본 영상의 CC BY 조건을 따르며 루트 `LICENSE`의 MIT 적용
+대상이 아니다. KMSAV 목록은 원본을 찾는 데만 사용했고, 저작자·출처·라이선스와
+발췌·포맷 변환 사실은 위 표와 공개 앱 결과 화면에 함께 표시한다.
 
 실제 결과:
 

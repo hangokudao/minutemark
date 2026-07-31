@@ -54,7 +54,10 @@ SAMPLES = {
         "description": "앞으로 수행할 구체적인 작업이 포함된 34초 공개 발화",
         "source_title": "[생방송] 이재명 당대표 주재 더불어민주당 최고위원회의",
         "source_url": "https://www.youtube.com/watch?v=-WZ18GPkDJg",
-        "license": "Creative Commons Attribution",
+        "author": "시사발전소 현장LIVE",
+        "license": "Creative Commons Attribution (CC BY)",
+        "license_url": "https://support.google.com/youtube/answer/2797468",
+        "modification": "34초 발췌·16 kHz mono WAV 변환",
     },
     "decision": {
         "filename": "ko-02-decision.wav",
@@ -62,7 +65,10 @@ SAMPLES = {
         "description": "지역 합의와 추진 여부에 대한 결정이 포함된 34초 공개 발화",
         "source_title": "[충북 시사토론 창] 위기의 KTX 오송역, 대응방안은?",
         "source_url": "https://www.youtube.com/watch?v=Nm0lLy1crg0",
-        "license": "Creative Commons Attribution",
+        "author": "안녕!MBC충북",
+        "license": "Creative Commons Attribution (CC BY)",
+        "license_url": "https://support.google.com/youtube/answer/2797468",
+        "modification": "34초 발췌·16 kHz mono WAV 변환",
     },
 }
 
@@ -303,7 +309,13 @@ def analyze_sample(sample_id: str) -> dict:
     except CapacityExceeded as error:
         raise HTTPException(status_code=429, detail=str(error)) from error
     except ValueError as error:
-        raise HTTPException(status_code=422, detail=str(error)) from error
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "오디오 파일을 처리할 수 없습니다. "
+                "올바른 오디오 파일인지 확인해 주세요."
+            ),
+        ) from error
     except Exception as error:
         logger.exception("공개 샘플 AI 분석 실패")
         raise HTTPException(
@@ -352,7 +364,13 @@ async def analyze_upload(audio: UploadFile = File(...)) -> dict:
             ),
         ) from error
     except ValueError as error:
-        raise HTTPException(status_code=422, detail=str(error)) from error
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "오디오 파일을 처리할 수 없습니다. "
+                "올바른 오디오 파일인지 확인해 주세요."
+            ),
+        ) from error
     except Exception as error:
         logger.exception("업로드 오디오 AI 분석 실패")
         raise HTTPException(

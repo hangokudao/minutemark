@@ -135,13 +135,20 @@ docker compose run --rm -v ./tests:/tests:ro --entrypoint python web \
 ```
 
 현재 A6 400 폴백, 일시적 502 재시도, 근거 정규화·검증, 예산·용량 보호선,
-샘플 길이, 잘못된 오디오 오류 정제를 포함한 테스트 10개가 통과합니다.
+샘플 길이, 오류 정보 정제, 공개 샘플 저작자 표시를 포함한 테스트 12개가
+통과합니다.
 
 ## 문서
 
 - [운영·검증 기록](./NOTES.md)
 - [공개 오디오 출처와 라이선스](./PUBLIC_AUDIO_SAMPLES.md)
 - [66초 데모 녹화 대본](./docs/DEMO_SCRIPT.md)
+
+## 라이선스
+
+소스 코드와 자체 제작 문서·이미지는 [MIT](./LICENSE)입니다. 번들된
+`samples/korean/*.wav`는 MIT 적용 대상이 아니며, 각 원본의 CC BY 조건과
+[저작자·출처·가공 표시](./PUBLIC_AUDIO_SAMPLES.md)를 따릅니다.
 
 ## 현재 제한
 

@@ -235,7 +235,12 @@ function renderResult(result) {
       <a href="${escapeHtml(result.sample.source_url)}" target="_blank" rel="noreferrer">
         ${escapeHtml(result.sample.source_title)}
       </a>
-      · ${escapeHtml(result.sample.license)}
+      · ${escapeHtml(result.sample.author)}
+      ·
+      <a href="${escapeHtml(result.sample.license_url)}" target="_blank" rel="noreferrer">
+        ${escapeHtml(result.sample.license)}
+      </a>
+      · ${escapeHtml(result.sample.modification)}
     `;
   } else {
     elements.sourceAttribution.textContent =
