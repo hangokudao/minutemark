@@ -55,7 +55,7 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 
 | 위험 | 최소 증거 | 통과 기준 | 현재 상태 |
 | --- | --- | --- | --- |
-| 독립 빌드 | Docker 이미지와 전체 회귀 | 동일 소스 이미지 빌드·테스트 성공 | `PASS` · image `8f6c4696…`, 48/48 |
+| 독립 빌드 | Docker 이미지와 전체 회귀 | 동일 소스 이미지 빌드·테스트 성공 | `PASS` · image `025ea4c2…`, 48/48 |
 | 인증 경계 | 비인증·잘못된 provider·폐기 token 테스트 | 서버가 안전한 401로 거부 | 기존 자동 증거 PASS |
 | 실제 Google 로그인 | 배포 후보에서 Google 계정 선택·로그인 | 계정 선택 뒤 회원 화면 진입 | `BLOCKED` · 승인 도메인은 추가됐으나 Chrome에서 계정 선택 창이 열리지 않음 |
 | 사용자 소유권 | 다른 실제 Google 사용자 직접 요청 | 목록·상세·오디오가 404 | `BLOCKED` · 배포 후보에서 검증 예정 |
@@ -102,12 +102,31 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 - 정식 서비스 전환 전에는 A6API의 보관·학습·처리 국가·재위탁 조건을 별도로
   확인해야 한다는 제한을 유지함
 
+### 공개 전환과 복구
+
+1. 공개 전환 직전에 Cloud Run의 현재 100% 트래픽 리비전과 새 V2 후보 리비전을
+   다시 읽어 기록한다. 이번 작업의 기존 정상 리비전은 `minutemark-00007-w6c`다.
+2. V2 후보의 `/api/health` commit이 GitHub `main` SHA와 같고 필수 QA가 모두
+   PASS일 때만 새 리비전으로 트래픽을 전환한다.
+3. 전환 후 health·공개 샘플·로그인 진입 스모크가 실패하면 아래 명령으로 기존
+   정상 리비전에 트래픽 100%를 되돌린다.
+
+```sh
+gcloud run services update-traffic minutemark \
+  --project=minutemark-portfolio \
+  --region=asia-northeast3 \
+  --to-revisions=minutemark-00007-w6c=100
+```
+
+4. 복구 뒤 공개 `/api/health`가 HTTP 200인지 확인하고, Cloud Run 트래픽 조회에서
+   기존 리비전 100%를 확인한다. 전환 전 후보가 실패하면 트래픽을 건드리지 않는다.
+
 ## 8. 이번 실행 증거
 
 ### 자동·HTTP
 
 - Docker: `minutemark-v2-1-rc-20260803`, image
-  `sha256:8f6c4696237e86a039dda66766bff374988a6e35df074d46cc056948af169955`
+  `sha256:025ea4c28485e72df8d4fe3ba1fd11ebec7fb06da993a577e04b4dbcee5e2113`
 - 기본 실행 사용자: `minutemark`
 - 회귀: 48/48 `PASS`
 - `pip check`: 충돌 0
@@ -226,11 +245,20 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
 | 항목 | 결과 | 증거 |
 | --- | --- | --- |
 | 확정 문구·버전업 규칙 | `PASS` | 업로드·privacy 계약 테스트와 `AGENTS.md`·README 연결 |
-| 전체 자동 테스트·Docker 빌드 | `PASS` | 48/48, image `8f6c4696…`, 비루트 `minutemark` |
+| 전체 자동 테스트·Docker 빌드 | `PASS` | 48/48, image `025ea4c2…`, 비루트 `minutemark` |
 | 의존성·보안 점검 | `PASS` | `pip check` 0, `pip-audit` 0, 404·401·`no-store`·보안 헤더 |
-| Spec 리뷰 | 대기 | `main...HEAD` 리뷰 결과와 수정 내역 |
-| Standards/보안 리뷰 | 대기 | `main...HEAD` 리뷰 결과와 수정 내역 |
+| Spec 리뷰 | `PASS` | 보조 Spec 충돌과 DELETE 404 계약 보완, 48/48 재통과 |
+| Standards/보안 리뷰 | `PASS` | P0/P1 코드 결함 0, 복구 절차 누락 보완 |
 | GitHub PR | 대기 | PR #5 head SHA와 merge gate |
 | Cloud Run 0% 후보 | 대기 | 리비전·tag URL·`/api/health` commit |
 | 실제 회원 QA | `BLOCKED` | 계정 소유자 로그인 후 저장·격리·삭제 증거 필요 |
 | `main` 병합·공개 V2 | `BLOCKED` | 위 필수 게이트가 모두 PASS일 때만 진행 |
+
+리뷰에서 발견한 보조 Spec의 QA 정책 충돌은 현재 정본에 맞게 수정했고, 없는 회의와
+다른 사용자 회의의 `DELETE`가 동일하게 404를 반환하도록 계약과 구현을 맞췄다.
+관련 회귀 48/48을 다시 통과해 Spec 리뷰를 PASS로 닫았다.
+
+비차단 유지보수 항목은 `cloudbuild.yaml`과 `cloudrun-deploy.sh`의 배포 환경변수
+중복 한 건이다. 현재 값은 일치한다. 둘 중 하나를 다음에 변경할 때 공통 정본 또는
+일치 검사를 먼저 마련하지 않으면 설정이 어긋날 수 있으므로 `BEFORE_NEXT_CHANGE`로
+기록한다.
