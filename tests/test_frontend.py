@@ -112,6 +112,25 @@ class FrontendContractTest(unittest.TestCase):
         self.assertIn("MinuteMark 개인정보 보호 담당", self.html)
         self.assertIn("mailto:hangokudao@gmail.com", self.html)
 
+    def test_auth_route_renders_before_persisted_auth_resolution(self):
+        self.assertIn(
+            'if (location.pathname === "/auth") await renderRoute(currentPath);\n'
+            '    const [appModule, authModule] = await Promise.all([',
+            self.javascript,
+        )
+        self.assertIn('id="google-signin" type="button" disabled', self.html)
+        self.assertIn("elements.googleSignin.disabled = false;", self.javascript)
+
+    def test_portfolio_limit_is_visible_and_repeated_in_privacy_notice(self):
+        self.assertIn('class="portfolio-notice"', self.html)
+        self.assertIn('id="auth-portfolio-note"', self.html)
+        self.assertIn('id="mobile-portfolio-note"', self.html)
+        self.assertGreaterEqual(self.html.count("정식 서비스가 아닙니다."), 4)
+        self.assertGreaterEqual(
+            self.html.count("민감하거나 실제 업무용인 파일은 업로드하지 마세요."),
+            2,
+        )
+
     def test_destructive_actions_use_explicit_confirmation_controls(self):
         self.assertIn('id="delete-meeting-dialog"', self.html)
         self.assertIn('id="confirm-delete-meeting"', self.html)

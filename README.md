@@ -3,6 +3,9 @@
 실제 회의 음성을 전사하고, 회의에서 확정된 결정과 할 일을 근거 발화와 함께
 보여주는 AI 회의 노트입니다.
 
+> **포트폴리오 데모:** MinuteMark는 정식 서비스가 아닙니다. 민감하거나 실제
+> 업무용인 파일은 업로드하지 마세요.
+
 [현재 공개 V1 실행해 보기](https://minutemark-2u3l25uhba-du.a.run.app) ·
 [GitHub 저장소](https://github.com/hangokudao/minutemark) ·
 [74초 실제 AI 데모](./docs/demo/minutemark-live-demo.mp4) ·
@@ -159,7 +162,7 @@ docker compose run --rm -v ./tests:/tests:ro --entrypoint python web \
 현재 기존 분석 회귀와 Firebase token 검증, 인증 전 body 차단, 사용자 소유권,
 저장 한도, 객체 generation 고정, 고아 객체 정리, 보상 삭제, content-first 탈퇴,
 라우팅·모바일 메뉴·draft 경고·개인 요청 취소·Google 전용 인증과 문의처 계약을
-포함한 총 46개가 통과합니다.
+포함한 총 48개가 통과합니다.
 최종 이미지의 `pip-audit`도 알려진
 취약점 0건입니다.
 
@@ -169,7 +172,7 @@ GitHub `main`이 배포 정본입니다. `main`에 병합하면 Cloud Build가
 [`cloudbuild.yaml`](./cloudbuild.yaml)에 따라 다음 순서로 실행합니다.
 
 1. Docker 이미지 빌드
-2. 회귀 테스트 46개
+2. 회귀 테스트 48개
 3. Git 커밋 SHA로 이미지 태그 후 Artifact Registry에 push
 4. Cloud Run `minutemark`에 트래픽 0% 후보 리비전으로 배포
 

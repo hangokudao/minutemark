@@ -11,7 +11,14 @@ SERVICE_NAME=${2:-minutemark}
 REGION=${3:-asia-northeast3}
 SECRET_NAME=minutemark-a6-api-key
 RUNTIME_SERVICE_ACCOUNT="minutemark-runtime@${PROJECT_ID}.iam.gserviceaccount.com"
-DEPLOY_COMMIT=$(git rev-parse HEAD 2>/dev/null || printf manual)
+
+if [ -n "$(git status --porcelain)" ]; then
+  echo "작업 트리에 커밋되지 않은 변경이 있어 배포를 중단합니다." >&2
+  echo "검증한 변경을 먼저 커밋한 뒤 다시 실행하세요." >&2
+  exit 2
+fi
+
+DEPLOY_COMMIT=$(git rev-parse HEAD)
 
 ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format='value(account)' | head -n 1)
 if [ -z "$ACCOUNT" ]; then
