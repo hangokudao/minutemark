@@ -1,5 +1,8 @@
 # MinuteMark redesign QA
 
+> 이 문서의 기존 `passed` 판정은 V1 결과 화면 redesign에만 해당한다. V2 회원
+> 릴리스 판정은 [V2 릴리스 QA 증거](./docs/V2_QA_EVIDENCE.md)를 따른다.
+
 ## Design Contract
 
 - `JOB`: 공개 샘플 또는 파일을 분석한 사용자가 결정·할 일을 먼저 확인하고, `근거 듣기`로 실제 발화 위치와 전사를 즉시 검증한다. 성공 신호는 오디오 seek, 재생, 해당 전사 강조가 한 번의 조작으로 함께 일어나는 것이다.
@@ -69,4 +72,17 @@
 
 - 없음. custom audio timeline은 별도 기능 범위가 승인될 때만 검토한다.
 
-final result: passed
+## V2 공개 화면 targeted 재검증
+
+- 수정 대상: 게스트 예산 badge 제거, 게스트 `최근 회의 0 / 5` 제거
+- 브라우저: 격리 Playwright + `/usr/bin/google-chrome`
+- 1440×900: 공개 샘플 2개, `새 회의`, privacy 열기·복귀, 가로 overflow 없음,
+  console error/warn 0, failed request 0
+- 390×844: `새 회의`, 메뉴·공개 샘플·privacy·GitHub, 메뉴 닫기, 가로 overflow
+  없음, console error/warn 0, failed request 0
+- 스크린샷: `/tmp/minutemark-v2-desktop.png`,
+  `/tmp/minutemark-v2-mobile.png`
+- 회원 목록·상세·삭제와 실제 Google 인증은 Windows Chrome 브리지 timeout으로
+  미검증이다.
+
+final result: V1 visual baseline passed; V2 release QA blocked

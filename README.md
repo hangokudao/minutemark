@@ -5,6 +5,7 @@
 
 [현재 공개 V1 실행해 보기](https://minutemark-2u3l25uhba-du.a.run.app) ·
 [GitHub 저장소](https://github.com/hangokudao/minutemark) ·
+[74초 실제 AI 데모](./docs/demo/minutemark-live-demo.mp4) ·
 [데모 녹화 대본](./docs/DEMO_SCRIPT.md)
 
 ![MinuteMark 데스크톱 화면](./docs/screenshots/minutemark-desktop.png)
@@ -122,16 +123,17 @@ A6API 토큰 `local-meeting-notes-mvp`의 총한도는 $1.00으로 설정했습�
 | 실패·재시도 상태 | PASS | 안전한 한국어 안내만 표시, 내부 오류·경로 없음 |
 | 오류 경로 콘솔·네트워크 | PASS | 콘솔 오류 없음, Cloud Run POST 422 두 번 |
 
-2026-08-02 V2 로컬 후보의 Windows Chrome QA에서는 게스트 화면,
-개인정보처리방침, 데스크톱 캡처와 콘솔 error/warn 0건까지 확인했습니다. Google
-계정 선택 뒤 브리지의 `Runtime.evaluate`가 timeout 되어 로그인 후 업로드·저장·
-재열람·삭제·탈퇴와 모바일 390×844 검증은 `FAILED / 미검증`입니다. 같은 상태 변경
-흐름을 다른 자동화로 성공 처리하지 않았습니다.
+2026-08-02 V2 로컬 후보의 Windows Chrome 브리지는 Chrome 제어 연결 timeout으로
+`BLOCKED`였습니다. 공개·읽기 전용 화면만 격리 Chrome fallback에서 1440×900과
+390×844로 확인했습니다. Google 로그인 뒤 업로드·저장·재열람·삭제·탈퇴와 모바일
+회원 흐름은 `미검증`이며 다른 자동화 결과로 성공 처리하지 않았습니다. 항목별
+근거는 [V2 릴리스 QA 증거](./docs/V2_QA_EVIDENCE.md)에 기록했습니다.
 
 ![MinuteMark 모바일 화면](./docs/screenshots/minutemark-mobile.png)
 
-스크린샷과 검증 결과는 실제 공개 URL 기준입니다. 조작 영상이 필요한 경우
-[데모 녹화 대본](./docs/DEMO_SCRIPT.md)의 66초 순서로 한 번만 녹화하면 됩니다.
+V1 공개 샘플 분석과 근거 듣기 흐름은
+[74초 실제 AI 데모](./docs/demo/minutemark-live-demo.mp4)에서 확인할 수 있습니다.
+V2 회원 흐름은 위 QA 상태처럼 아직 실사용 증거가 없습니다.
 
 ## 로컬 실행
 
@@ -151,10 +153,10 @@ docker compose run --rm -v ./tests:/tests:ro --entrypoint python web \
   -m unittest discover -s /tests -v
 ```
 
-현재 기존 분석 회귀 15개와 Firebase token 검증, 인증 전 body 차단, 사용자
-소유권, 저장 한도, 객체 generation 고정, 고아 객체 정리, 보상 삭제,
-content-first 탈퇴, 멱등 생성·삭제를 포함한 V2 테스트 18개까지 총 33개가
-통과합니다. 최종 이미지의 `pip-audit`도 알려진
+현재 기존 분석 회귀와 Firebase token 검증, 인증 전 body 차단, 사용자 소유권,
+저장 한도, 객체 generation 고정, 고아 객체 정리, 보상 삭제, content-first 탈퇴,
+라우팅·모바일 메뉴·draft 경고·개인 요청 취소를 포함한 총 43개가 통과합니다.
+최종 이미지의 `pip-audit`도 알려진
 취약점 0건입니다.
 
 ## 자동 배포
@@ -163,23 +165,26 @@ GitHub `main`이 배포 정본입니다. `main`에 병합하면 Cloud Build가
 [`cloudbuild.yaml`](./cloudbuild.yaml)에 따라 다음 순서로 실행합니다.
 
 1. Docker 이미지 빌드
-2. 회귀 테스트 33개
+2. 회귀 테스트 43개
 3. Git 커밋 SHA로 이미지 태그 후 Artifact Registry에 push
-4. 기존 Cloud Run `minutemark` 서비스에 배포
+4. Cloud Run `minutemark`에 트래픽 0% 후보 리비전으로 배포
 
-`/api/health`의 `commit` 값과 GitHub `main` SHA가 같으면 배포가 동기화된
-상태입니다. 배포 명령은 Secret Manager의 `minutemark-a6-api-key` 버전 `1`,
-전용 `minutemark-runtime` 서비스 계정, 최대 인스턴스 `1`, 동시 처리 `1`을
-명시적으로 고정합니다. 현재 런타임 서비스 계정에는 해당 secret 접근 권한이
-없으므로 권한 승인 전 V2 배포는 차단됩니다. 수동
+후보 URL의 `/api/health`와 실제 사용자 QA가 통과한 뒤에만 트래픽을 전환합니다.
+배포 명령은 현재 Secret Manager의 `minutemark-a6-api-key` 버전 `1`, 전용
+`minutemark-runtime` 서비스 계정, 최대 인스턴스 `1`, 동시 처리 `1`을 명시합니다.
+런타임 계정의 secret 단일 리소스 접근 권한은 확인됐지만 A6에서 교체한 새 token이
+버전 `1`에 들어 있다는 증거가 없어 정확한 새 버전 확인 전 배포는 차단됩니다. 수동
 [`cloudrun-deploy.sh`](./cloudrun-deploy.sh)는 최초 설정이나 복구용입니다.
 
 ## 문서
 
 - [운영·검증 기록](./NOTES.md)
 - [V2 제품·구현 계획](./docs/V2_PRODUCT_PLAN.md)
+- [V2 릴리스 QA 증거](./docs/V2_QA_EVIDENCE.md)
+- [디자인 레퍼런스 10선](./docs/DESIGN_REFERENCES.md)
 - [서버 전용 Firestore deny-all 규칙](./firestore.rules)
 - [공개 오디오 출처와 라이선스](./PUBLIC_AUDIO_SAMPLES.md)
+- [74초 실제 AI 데모](./docs/demo/minutemark-live-demo.mp4)
 - [66초 데모 녹화 대본](./docs/DEMO_SCRIPT.md)
 
 ## 라이선스
@@ -193,7 +198,7 @@ GitHub `main`이 배포 정본입니다. `main`에 병합하면 Cloud Build가
 - V2 후보는 로컬 구현·검증 상태이며 현재 공개 Cloud Run 리비전에는 배포하지
   않았습니다.
 - Windows Chrome 브리지 오류로 실제 Google 로그인 이후 전체 사용자 흐름과
-  모바일 viewport QA를 완료하지 못했습니다.
+  모바일 회원 QA를 완료하지 못했습니다.
 - 로컬 ADC 계정에는 runtime 서비스 계정의 `signBlob` 권한을 부여하지 않아
   signed audio URL 통합 테스트가 403이었습니다. QA 객체는 즉시 삭제됐고, 운영
   runtime 서비스 계정의 self-sign 최소권한은 정책에서 확인했지만 배포 실행은

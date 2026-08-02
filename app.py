@@ -425,11 +425,6 @@ def public_config() -> dict:
     }
 
 
-@app.get("/api/budget")
-def budget() -> dict:
-    return budget_snapshot()
-
-
 @app.get("/api/samples")
 def samples() -> list[dict]:
     return [

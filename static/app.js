@@ -11,7 +11,6 @@ const elements = {
   chooseFile: document.querySelector("#choose-file"),
   analyzeSave: document.querySelector("#analyze-save-button"),
   signinUpload: document.querySelector("#signin-upload-button"),
-  budgetStatus: document.querySelector("#budget-status"),
   dropZone: document.querySelector("#drop-zone"),
   dropLabel: document.querySelector("#drop-label"),
   dropHelp: document.querySelector("#drop-help"),
@@ -92,6 +91,36 @@ let authReady = false;
 let currentPath = location.pathname + location.search;
 let isSubmittingMeeting = false;
 let privacyReturnPath = "/samples";
+let privateRequestGeneration = 0;
+let privateRequestController = new AbortController();
+
+function invalidatePrivateRequests() {
+  privateRequestController.abort();
+  privateRequestController = new AbortController();
+  privateRequestGeneration += 1;
+}
+
+function capturePrivateSession() {
+  if (!currentUser) throw new Error("Google 로그인이 필요합니다.");
+  return {
+    user: currentUser,
+    generation: privateRequestGeneration,
+    signal: privateRequestController.signal,
+  };
+}
+
+function isPrivateSessionCurrent(session) {
+  return Boolean(
+    currentUser
+    && session.user === currentUser
+    && session.generation === privateRequestGeneration
+    && !session.signal.aborted,
+  );
+}
+
+function isCancelledPrivateRequest(error) {
+  return error?.name === "AbortError";
+}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -356,11 +385,14 @@ async function readError(response) {
 }
 
 async function authFetch(url, options = {}) {
-  if (!currentUser) throw new Error("Google 로그인이 필요합니다.");
-  const token = await currentUser.getIdToken();
+  const session = capturePrivateSession();
+  const token = await session.user.getIdToken();
+  if (!isPrivateSessionCurrent(session)) throw new DOMException("요청이 취소됐습니다.", "AbortError");
   const headers = new Headers(options.headers || {});
   headers.set("Authorization", `Bearer ${token}`);
-  return fetch(url, { ...options, headers });
+  const response = await fetch(url, { ...options, headers, signal: session.signal });
+  if (!isPrivateSessionCurrent(session)) throw new DOMException("요청이 취소됐습니다.", "AbortError");
+  return { response, session };
 }
 
 async function analyzeSample(sample) {
@@ -399,19 +431,24 @@ async function analyzeUpload(file) {
   formData.append("title", title);
   formData.append("participant_notice_confirmed", "true");
   try {
-    const response = await authFetch("/api/meetings", {
+    const { response, session } = await authFetch("/api/meetings", {
       method: "POST",
       body: formData,
       headers: { "Idempotency-Key": uploadRequestId },
     });
     if (!response.ok) throw new Error(await readError(response));
     const meeting = await response.json();
+    if (!isPrivateSessionCurrent(session) || location.pathname !== "/meetings/new") return;
     clearMeetingDraft();
     history.replaceState({}, "", `/meetings/${meeting.id}`);
     currentPath = `/meetings/${meeting.id}`;
     renderResult(meeting.analysis, meeting);
     await loadMeetings();
   } catch (error) {
+    if (isCancelledPrivateRequest(error)) {
+      endLoading();
+      return;
+    }
     showError(error.message);
   }
 }
@@ -446,19 +483,6 @@ async function loadSamples() {
     renderSamples(await response.json());
   } catch (error) {
     elements.sampleList.innerHTML = `<p class="empty-result">샘플 목록을 불러오지 못했습니다: ${escapeHtml(error.message)}</p>`;
-  }
-}
-
-async function loadBudget() {
-  try {
-    const response = await fetch("/api/budget");
-    if (!response.ok) return;
-    const budget = await response.json();
-    elements.budgetStatus.textContent = budget.persistence === "persistent"
-      ? `실제 AI 추론 · $${budget.remaining_usd.toFixed(4)} 남음`
-      : "실제 AI 추론 · A6 토큰 한도 적용";
-  } catch {
-    elements.budgetStatus.textContent = "실제 AI 추론 · 월 $1 제한";
   }
 }
 
@@ -523,10 +547,13 @@ async function loadMeetings() {
   elements.meetingList.innerHTML = "<p>회의 목록을 불러오는 중…</p>";
   elements.meetingListPage.innerHTML = "<p>회의 목록을 불러오는 중…</p>";
   try {
-    const response = await authFetch("/api/meetings");
+    const { response, session } = await authFetch("/api/meetings");
     if (!response.ok) throw new Error(await readError(response));
-    renderMeetings(await response.json());
+    const meetings = await response.json();
+    if (!isPrivateSessionCurrent(session)) return;
+    renderMeetings(meetings);
   } catch (error) {
+    if (isCancelledPrivateRequest(error)) return;
     elements.meetingList.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
     elements.meetingListPage.innerHTML = `<div class="meeting-empty"><strong>회의 목록을 불러오지 못했습니다.</strong><p>${escapeHtml(error.message)}</p><button class="button button-secondary" type="button" data-retry-meetings>다시 시도</button></div>`;
     elements.meetingListPage.querySelector("[data-retry-meetings]")
@@ -543,11 +570,19 @@ async function openMeeting(meetingId, updateUrl = true) {
   elements.statusPanel.querySelector("#status-copy").textContent = "저장한 결과와 오디오 접근 권한을 확인하고 있습니다.";
   elements.statusPanel.hidden = false;
   try {
-    const response = await authFetch(`/api/meetings/${encodeURIComponent(meetingId)}`);
+    const { response, session } = await authFetch(`/api/meetings/${encodeURIComponent(meetingId)}`);
     if (!response.ok) throw new Error(await readError(response));
     const meeting = await response.json();
+    if (
+      !isPrivateSessionCurrent(session)
+      || location.pathname !== `/meetings/${meetingId}`
+    ) return;
     renderResult(meeting.analysis, meeting);
   } catch (error) {
+    if (isCancelledPrivateRequest(error)) {
+      endLoading();
+      return;
+    }
     showError(error.message);
   }
 }
@@ -728,10 +763,11 @@ async function openAuthDialog(next = "/meetings/new") {
 
 async function openPrivacyDialog() {
   privacyReturnPath = currentPath === "/privacy" ? "/samples" : currentPath;
-  await navigate("/privacy", { skipDraftGuard: true });
+  await navigate("/privacy");
 }
 
 function setAuthState(user) {
+  if (currentUser?.uid !== user?.uid) invalidatePrivateRequests();
   currentUser = user;
   document.body.classList.toggle("is-member", Boolean(user));
   elements.dropZone.classList.toggle("is-locked", !user);
@@ -747,8 +783,10 @@ function setAuthState(user) {
     ? "분석하면 원본과 결과가 계정에 저장됩니다."
     : "공개 샘플은 로그인 없이 확인할 수 있습니다.";
   if (!user) {
+    endLoading();
     clearPrivateResult();
     if (elements.accountDialog.open) elements.accountDialog.close();
+    if (elements.deleteMeetingDialog.open) elements.deleteMeetingDialog.close();
   }
   updateAnalyzeButton();
   loadMeetings();
@@ -837,6 +875,7 @@ elements.googleSignin.addEventListener("click", async () => {
 });
 
 async function handleSignout() {
+  invalidatePrivateRequests();
   await signOut(auth);
   if (elements.accountDialog.open) elements.accountDialog.close();
   closeMobileMenu();
@@ -855,14 +894,17 @@ elements.deleteMeeting.addEventListener("click", () => {
 elements.deleteMeetingCancel.addEventListener("click", () => elements.deleteMeetingDialog.close());
 elements.deleteMeetingConfirm.addEventListener("click", async () => {
   if (!currentMeetingId) return;
+  const meetingId = currentMeetingId;
   elements.deleteMeetingConfirm.disabled = true;
   try {
-    const response = await authFetch(`/api/meetings/${encodeURIComponent(currentMeetingId)}`, { method: "DELETE" });
+    const { response, session } = await authFetch(`/api/meetings/${encodeURIComponent(meetingId)}`, { method: "DELETE" });
     if (!response.ok) throw new Error(await readError(response));
+    if (!isPrivateSessionCurrent(session) || currentMeetingId !== meetingId) return;
     elements.deleteMeetingDialog.close();
-    currentMeetingId = null;
+    clearPrivateResult();
     await navigate("/meetings", { replace: true, skipDraftGuard: true });
   } catch (error) {
+    if (isCancelledPrivateRequest(error)) return;
     elements.deleteMeetingError.textContent = error.message;
   } finally {
     elements.deleteMeetingConfirm.disabled = false;
@@ -879,13 +921,16 @@ elements.deleteAccount.addEventListener("click", async () => {
   try {
     await reauthenticateWithPopup(currentUser, provider);
     await currentUser.getIdToken(true);
-    const response = await authFetch("/api/account", { method: "DELETE" });
+    const { response, session } = await authFetch("/api/account", { method: "DELETE" });
     if (!response.ok) throw new Error(await readError(response));
+    if (!isPrivateSessionCurrent(session)) return;
+    invalidatePrivateRequests();
     await signOut(auth);
     elements.accountDialog.close();
     clearMeetingDraft();
     await navigate("/samples", { replace: true, skipDraftGuard: true });
   } catch (error) {
+    if (isCancelledPrivateRequest(error)) return;
     elements.accountError.textContent = error.code === "auth/popup-closed-by-user"
       ? "계정 삭제 확인이 취소됐습니다."
       : error.message || "계정을 삭제하지 못했습니다. 다시 시도해 주세요.";
@@ -895,7 +940,7 @@ elements.deleteAccount.addEventListener("click", async () => {
 });
 
 async function initialize() {
-  await Promise.all([loadSamples(), loadBudget()]);
+  await loadSamples();
   try {
     const response = await fetch("/api/config");
     if (!response.ok) throw new Error(await readError(response));

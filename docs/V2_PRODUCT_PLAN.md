@@ -15,12 +15,13 @@ BLOCKED`다.
 | 인증·API | Firebase ID token 서명·만료·폐기 확인, 인증 전 multipart body 차단 | 코드·테스트 PASS |
 | 저장·소유권 | UID 하위 Firestore 문서, 비공개 Storage, 객체 generation 고정, 5분 signed URL, 타 사용자 404 | 코드·테스트 PASS |
 | 삭제 | 오디오→문서, 고아 객체 정리, 전체 content→Auth 사용자 순서와 멱등 재시도 | 코드·테스트 PASS |
-| 회귀 | 운영 Docker 이미지에서 기존 분석 15개 + 회원·보안 18개 | 33/33 PASS |
-| GCP | `myhanbro@gmail.com`, `minutemark-portfolio`, 서울 Firestore·Storage, PAP·UBLA, soft delete 0, 최소권한 runtime SA | 런타임 SA의 Secret Manager 접근 권한 부재 |
-| signed audio URL | QA 객체 생성·정리는 PASS. 로컬 ADC 계정에 runtime SA `signBlob` 권한이 없어 발급 403 | 운영 실행 주체 미검증 |
-| Windows Chrome | 게스트·privacy·desktop 캡처, console error/warn 0 | 부분 PASS |
+| 회귀 | 운영 Docker 이미지에서 분석·회원·보안·라우팅 | 43/43 PASS |
+| GCP | `myhanbro@gmail.com`, 서울 Firestore·Storage, deny-all Rules, PAP·UBLA, soft delete 0, 최소권한 runtime SA | IAM PASS · 새 A6 secret 버전 미확인 |
+| signed audio URL | runtime SA self `signBlob`와 객체 권한 확인 | 운영 리비전 실제 발급 미검증 |
+| Windows Chrome | 브리지 Chrome 제어 연결 timeout | BLOCKED · 미검증 |
 | 인증 후 사용자 흐름 | Google 계정 선택 뒤 브리지 `Runtime.evaluate` timeout | FAILED · 미검증 |
-| 모바일 390×844 | Chrome viewport override 미적용 | FAILED · 미검증 |
+| 공개 화면 1440×900·390×844 | 격리 Chrome fallback, privacy·메뉴·overflow·요청 실패 확인 | 게스트 화면 PASS |
+| 모바일 회원 흐름 | 로그인 뒤 목록·상세·삭제 | 미검증 |
 | 배포 | 현재 Cloud Run은 기존 compute SA의 V1 리비전, V2 배포 미승인 | 미수행 |
 
 구현 완료를 출시 승인으로 해석하지 않는다. 실제 Google 로그인 뒤 분석·저장·
@@ -98,7 +99,9 @@ FastAPI가 검증한 사용자 요청에 대해서만 수행한다.
 - `PRIMARY`: 현재 구현 스크린샷
   [`minutemark-desktop.png`](./screenshots/minutemark-desktop.png)과
   [`minutemark-mobile.png`](./screenshots/minutemark-mobile.png), 그리고
-  [`design-qa.md`](../design-qa.md)를 V2 시각 정본으로 사용한다.
+  [`design-qa.md`](../design-qa.md)를 V2 시각 정본으로 사용한다. 외부 제품 패턴은
+  [`DESIGN_REFERENCES.md`](./DESIGN_REFERENCES.md)의 Teams 재생 맥락, Otter 결과
+  구조, Notion 근거 인용 조합만 참고한다.
 - `MEDIA`: 회원의 실제 회의 오디오를 비공개 Storage에 저장하고 만료가 짧은
   signed URL로 `<audio>`에 전달한다. 가짜 파형이나 장식용 미디어를 만들지 않는다.
 - `INTERACTION`: `근거 듣기`는 현재처럼 오디오 seek·재생·관련 전사 강조를 한 번에
@@ -132,7 +135,7 @@ flowchart TD
 1. `/samples`에서 실제 파이프라인으로 생성·검증한 공개 샘플 결과를 본다.
 2. 결과 상단에 `공개 샘플 · 실제 분석 결과 · 내 기록에는 저장되지 않음`을 표시한다.
 3. `새 회의`를 누르면 `/auth?next=/meetings/new`로 이동한다.
-4. `/api/analyze` 직접 호출은 파일 본문을 처리하기 전에 `401`을 반환한다.
+4. 비회원 `POST /api/meetings`는 multipart 파일 본문을 읽기 전에 `401`을 반환한다.
 
 비회원 파일 업로드를 허용하지 않는다. 익명 비용 고갈, 소유자 없는 음성의 삭제
 요청, 로그인 후 익명 데이터 병합을 새로 설계하지 않기 위한 경계다.
@@ -352,10 +355,9 @@ Supabase는 관계형 질의와 RLS가 핵심인 제품이라면 좋은 선택�
 | `GET` | `/api/samples` | 공개 | 실제 공개 샘플 목록 |
 | `POST` | `/api/analyze-sample/{id}` | 공개 | 분석 후 브라우저에만 결과 반환 |
 | `GET` | `/api/me` | 회원 | UID가 아닌 화면용 이메일·상태 반환 |
-| `POST` | `/api/analyze` | 회원 | 인증 후 분석, 성공한 회의 저장 |
+| `POST` | `/api/meetings` | 회원 | 인증 후 분석, 성공한 회의 저장 |
 | `GET` | `/api/meetings` | 회원 | 본인 회의 최신순 목록 |
-| `GET` | `/api/meetings/{id}` | 소유 회원 | 본인 상세만 반환 |
-| `POST` | `/api/meetings/{id}/audio-url` | 소유 회원 | 짧은 만료 signed URL 발급 |
+| `GET` | `/api/meetings/{id}` | 소유 회원 | 본인 상세와 새 5분 signed URL 반환 |
 | `DELETE` | `/api/meetings/{id}` | 소유 회원 | 오디오와 문서 삭제 |
 | `DELETE` | `/api/account` | 최근 재인증 회원 | content first, Auth last 탈퇴 |
 
@@ -508,7 +510,7 @@ Cloud Storage 새 버킷은 별도 설정이 없으면 soft delete가 기본 7�
 
 - 최초 Google 인증, 재로그인, 로그아웃
 - 누락·만료·다른 프로젝트 token 거부
-- 비회원 `/api/analyze`가 body 처리 전 `401`
+- 비회원 `POST /api/meetings`가 body 처리 전 `401`
 - ID token·이메일이 로그에 없음
 
 롤백: 플래그를 끄고 sample-only V1 제공.
@@ -577,7 +579,7 @@ Cloud Storage 새 버킷은 별도 설정이 없으면 soft delete가 기본 7�
 
 승인 기준:
 
-- 기존 분석 회귀 15개와 회원·보안 18개 테스트 통과
+- 분석·회원·보안·라우팅 회귀 43개 통과
 - 서로 다른 테스트 계정 2개로 IDOR 차단 확인
 - 회원 업로드 실제 1회, 새로고침 재진입, 회의 삭제 확인
 - `/api/health` commit과 배포 후보 SHA 일치
@@ -613,7 +615,7 @@ README에서는 다음을 설명한다.
 ## 11. 출시 차단 보안 체크
 
 - Firebase token을 단순 decode하고 서명·만료·대상 프로젝트를 검증하지 않음
-- UI만 숨기고 익명 `/api/analyze`를 열어 둠
+- UI만 숨기고 익명 회원 분석 API를 열어 둠
 - URL의 meeting ID만 믿어 다른 사용자의 상세·signed URL을 반환함
 - 전사문·AI 문자열·제목을 escaping 없이 `innerHTML`에 삽입함
 - ID token, signed URL, 이메일, 전사문을 로그에 남김
@@ -682,7 +684,9 @@ Google 로그인→실제 1회 분석·저장→새로고침 재진입→회의 
 2026-08-02 release hardening에서 공개 샘플 영속 cache, 서비스 전체 오디오
 512MiB cap, Firestore 750KiB 사전 거부를 구현했다. 저장 음성과 회원 API에는
 `no-store`를 적용했고, 보안 header·비루트 컨테이너·취약 의존성 업데이트도
-최종 이미지에서 검증했다.
+최종 이미지에서 검증했다. 실제 운영 Firestore deny-all Rules와 Storage의 서울
+리전·PAP·UBLA·soft delete 0도 읽기 증거로 확인했다. 항목별 결과는
+[`V2_QA_EVIDENCE.md`](./V2_QA_EVIDENCE.md)에 기록한다.
 
 V2 루프는 다음 조건을 모두 충족하면 종료한다.
 
@@ -693,4 +697,4 @@ V2 루프는 다음 조건을 모두 충족하면 종료한다.
 - 공개 샘플과 기존 근거 듣기 회귀 없음
 - 데스크톱·모바일의 `새 회의`와 주요 상태 검증
 - 개인정보처리방침이 실제 전송·보유·삭제·공급자 설정과 일치
-- main 병합·배포는 사용자 별도 승인 뒤 수행
+- 이미 받은 조건부 승인에 따라 모든 출시 게이트가 PASS일 때만 main 병합·배포
