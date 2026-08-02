@@ -27,13 +27,13 @@ Otter류 AI 회의 서비스의 핵심 경험만 3일 MVP 범위로 재구성했
 flowchart LR
     A["브라우저<br/>음성 또는 공개 샘플"] --> B["FastAPI<br/>Cloud Run"]
     B --> C["faster-whisper small<br/>CPU INT8 전사"]
-    C --> D["전사문과 구간 ID만<br/>A6API Claude로 전송"]
+    C --> D["전사문과 구간 ID만<br/>A6API GPT-5.6 Luna로 전송"]
     D --> E["결정·할 일 JSON"]
     E --> F["서버 구조·근거 검증"]
     F --> G["전사·결과·근거 듣기"]
 ```
 
-음성 원본은 Claude에 보내지 않습니다. 서버에서 Whisper로 전사한 텍스트와
+음성 원본은 A6API에 보내지 않습니다. 서버에서 Whisper로 전사한 텍스트와
 구간 ID만 전송합니다.
 
 ## 핵심 기능
@@ -41,7 +41,7 @@ flowchart LR
 - WAV, MP3, M4A, OGG, FLAC, WEBM 업로드
 - 실제 공개 한국어 회의 샘플 2개
 - `faster-whisper/small`의 타임스탬프 전사
-- A6API `claude-sonnet-5`의 결정·할 일 추출
+- A6API `gpt-5.6-luna`의 결정·할 일 추출
 - 존재하는 전사 구간만 허용하는 서버 검증
 - 결과의 `근거 듣기`에서 오디오 seek와 전사 강조
 - 처리 시간, 토큰, 예상 API 비용 표시
@@ -78,7 +78,7 @@ A6 스마트 라우터는 판매자에 따라 OpenAI 호환 기능 지원 범위
 
 - 애플리케이션: FastAPI + Vanilla JavaScript
 - 전사: `faster-whisper 1.2.1`, `small`, CPU INT8
-- 구조화: A6API `claude-sonnet-5`
+- 구조화: A6API `gpt-5.6-luna`
 - 패키징: Docker
 - 호스팅: Google Cloud Run 서울 리전
 - 리소스: 2 vCPU, 4 GiB, 동시 처리 1, 최소 0
