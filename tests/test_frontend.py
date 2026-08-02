@@ -50,6 +50,25 @@ class FrontendContractTest(unittest.TestCase):
         self.assertIn('window.addEventListener("beforeunload"', self.javascript)
         self.assertIn("history.pushState", self.javascript)
         self.assertIn("history.replaceState", self.javascript)
+        self.assertIn('await navigate("/privacy");', self.javascript)
+        self.assertNotIn(
+            'navigate("/privacy", { skipDraftGuard: true })', self.javascript
+        )
+
+    def test_guest_ui_hides_member_history_and_internal_budget(self):
+        self.assertIn(
+            '<section class="meeting-nav member-only"', self.html
+        )
+        self.assertNotIn('id="budget-status"', self.html)
+        self.assertNotIn("/api/budget", self.javascript)
+        self.assertNotIn("/api/budget", {route.path for route in app.app.routes})
+
+    def test_private_requests_are_invalidated_at_auth_boundaries(self):
+        self.assertIn("let privateRequestGeneration = 0;", self.javascript)
+        self.assertIn("new AbortController()", self.javascript)
+        self.assertIn("invalidatePrivateRequests();\n  await signOut(auth);", self.javascript)
+        self.assertIn("isPrivateSessionCurrent(session)", self.javascript)
+        self.assertIn("clearPrivateResult();\n    await navigate(\"/meetings\"", self.javascript)
 
     def test_destructive_actions_use_explicit_confirmation_controls(self):
         self.assertIn('id="delete-meeting-dialog"', self.html)
