@@ -125,11 +125,19 @@ class FrontendContractTest(unittest.TestCase):
         self.assertIn('class="portfolio-notice"', self.html)
         self.assertIn('id="auth-portfolio-note"', self.html)
         self.assertIn('id="mobile-portfolio-note"', self.html)
-        self.assertGreaterEqual(self.html.count("정식 서비스가 아닙니다."), 4)
         self.assertGreaterEqual(
-            self.html.count("민감하거나 실제 업무용인 파일은 업로드하지 마세요."),
+            self.html.count("실제 업무·기밀·민감정보가 포함된 파일을 업로드하지 마세요."),
             2,
         )
+        self.assertGreaterEqual(
+            self.html.count("참여자 고지와 권한을 확보해야 합니다."),
+            2,
+        )
+        self.assertGreaterEqual(
+            self.html.count("전사문은 결과 생성을 위해 A6API로 전송됩니다."),
+            2,
+        )
+        self.assertIn("참여자 고지와 권한을 확보했습니다.", self.html)
 
     def test_destructive_actions_use_explicit_confirmation_controls(self):
         self.assertIn('id="delete-meeting-dialog"', self.html)

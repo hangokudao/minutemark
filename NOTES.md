@@ -161,7 +161,7 @@ gcloud run services remove-iam-policy-binding minutemark \
 
 #### 2026-07-31 Cloud Run 프로덕션
 
-- Google Cloud 계정: `myhanbro@gmail.com`
+- Google Cloud 계정: 프로젝트 소유자 계정
 - 프로젝트: `minutemark-portfolio` (`89192290289`)
 - 결제 계정: `012A36-ED8E42-7CFE04`, 활성 상태
 - 서비스: `minutemark`, 리전 `asia-northeast3`
@@ -189,7 +189,7 @@ gcloud run services remove-iam-policy-binding minutemark \
 - `PRODUCTION` 런타임 게이트: PASS
 - Google Cloud 프로젝트 전용 월 `₩1,000` 예산
   `c40f522a-a5f6-439f-bc24-5c598100d835` 생성. 현재 지출 50%·90%·100%에서
-  결제 관리자 `myhanbro@gmail.com`에게 알림
+  프로젝트 결제 관리자에게 알림
 - Cloud Run 서비스 수준 최대 인스턴스 `1`, 동시 처리 `1` 재확인
 - Windows Chrome 1440×900 데스크톱 PASS
 - Windows Chrome 공개 샘플 2개 실제 분석과 `근거 듣기` PASS. 서버 로그에서
@@ -206,7 +206,7 @@ gcloud run services remove-iam-policy-binding minutemark \
   브라우저 콘솔 warn/error 없음
 - Cloud Run 요청 로그에서 `/api/analyze` HTTP 422 두 건 확인.
   새 revision의 severity ERROR 로그 없음
-- A6API 계정 `myhanbro@gmail.com`의 토큰 `local-meeting-notes-mvp` 총한도를
+- 프로젝트 소유 A6API 계정의 토큰 `local-meeting-notes-mvp` 총한도를
   `$1.00`으로 설정하고 남은 할당량 `$0.99`를 재확인
 - 브라우저 전체 게이트: PASS
 

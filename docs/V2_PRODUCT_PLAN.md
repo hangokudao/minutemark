@@ -16,7 +16,7 @@ BLOCKED`다.
 | 저장·소유권 | UID 하위 Firestore 문서, 비공개 Storage, 객체 generation 고정, 5분 signed URL, 타 사용자 404 | 코드·테스트 PASS |
 | 삭제 | 오디오→문서, 고아 객체 정리, 전체 content→Auth 사용자 순서와 멱등 재시도 | 코드·테스트 PASS |
 | 회귀 | 운영 Docker 이미지에서 분석·회원·보안·라우팅 | V2.1 46/46 PASS |
-| GCP | `myhanbro@gmail.com`, 서울 Firestore·Storage, deny-all Rules, PAP·UBLA, soft delete 0, 최소권한 runtime SA | PASS |
+| GCP | 프로젝트 소유 Google Cloud 계정, 서울 Firestore·Storage, deny-all Rules, PAP·UBLA, soft delete 0, 최소권한 runtime SA | PASS |
 | A6 secret·라우터 | 기존 secret 버전 `1`, 실제 V2 샘플 `gpt-5.6-luna`, grounding true | HTTP 200 PASS |
 | signed audio URL | runtime SA self `signBlob`와 객체 권한 확인 | 운영 리비전 실제 발급 미검증 |
 | Windows Chrome | 브리지는 timeout, 같은 Chrome CDP fallback에서 Google 브라우저 OAuth·로그아웃 | 브라우저 OAuth PASS · 백엔드 통합 로컬 FAIL |
