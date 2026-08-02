@@ -82,7 +82,10 @@
   없음, console error/warn 0, failed request 0
 - 스크린샷: `/tmp/minutemark-v2-desktop.png`,
   `/tmp/minutemark-v2-mobile.png`
-- 회원 목록·상세·삭제와 실제 Google 인증은 Windows Chrome 브리지 timeout으로
-  미검증이다.
+- Windows Chrome 브리지는 timeout이었지만 같은 Chrome의 CDP Playwright
+  fallback에서 실제 Google 로그인·로그아웃, 새 회의 입력, 390×844 회원 메뉴를
+  확인했다. 목록은 로컬 ADC의 Firebase Auth 사용자 조회 권한 부재로 401이었고,
+  상세·저장·삭제는 미검증이다. CSS 수정 후 캐시를 끈 390×844 재검증에서는
+  데스크톱 최근 회의 패널이 숨겨지고 메뉴 링크만 남으며 가로 넘침이 없었다.
 
 final result: V1 visual baseline passed; V2 release QA blocked

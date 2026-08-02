@@ -58,15 +58,18 @@ class AuthenticationBoundaryTest(unittest.TestCase):
     def test_hides_token_verification_details(self):
         verifier = Mock(side_effect=ValueError("decoded token leaked"))
 
-        with self.assertRaises(HTTPException) as raised:
-            members.verify_bearer_token(
-                "Bearer private-token",
-                verifier=verifier,
-            )
+        with self.assertLogs("minutemark.members", level="WARNING") as logs:
+            with self.assertRaises(HTTPException) as raised:
+                members.verify_bearer_token(
+                    "Bearer private-token",
+                    verifier=verifier,
+                )
 
         self.assertEqual(raised.exception.status_code, 401)
         self.assertNotIn("private-token", raised.exception.detail)
         self.assertNotIn("decoded", raised.exception.detail)
+        self.assertNotIn("private-token", " ".join(logs.output))
+        self.assertNotIn("decoded token leaked", " ".join(logs.output))
 
     def test_account_deletion_requires_recent_google_login(self):
         user = members.AuthUser(

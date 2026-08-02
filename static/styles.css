@@ -1423,9 +1423,12 @@ body[data-route="/meetings/new"] .sample-column {
   }
 
   .sidebar-nav,
-  .sidebar-note,
-  .meeting-nav {
+  .sidebar-note {
     display: none;
+  }
+
+  body.is-member .meeting-nav.member-only {
+    display: none !important;
   }
 
   .sidebar-footer {

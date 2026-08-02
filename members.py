@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import os
 import re
 import threading
@@ -32,6 +33,7 @@ MAX_TOTAL_AUDIO_BYTES = int(
 MAX_FIRESTORE_DOCUMENT_BYTES = 750 * 1024
 
 _firebase_lock = threading.Lock()
+logger = logging.getLogger("minutemark.members")
 
 
 @dataclass(frozen=True)
@@ -84,6 +86,23 @@ def firebase_token_verifier(token: str, check_revoked: bool = True) -> dict:
     return auth.verify_id_token(token, check_revoked=check_revoked)
 
 
+def token_error_category(error: Exception) -> str:
+    message = str(error).lower()
+    for category in (
+        "audience",
+        "issuer",
+        "expired",
+        "signature",
+        "certificate",
+        "project",
+        "future",
+        "algorithm",
+    ):
+        if category in message:
+            return category
+    return "unknown"
+
+
 def verify_bearer_token(
     authorization: str | None,
     verifier: Callable[..., dict] | None = None,
@@ -116,6 +135,11 @@ def verify_bearer_token(
     except HTTPException:
         raise
     except Exception as error:
+        logger.warning(
+            "Firebase bearer token rejected (%s, category=%s)",
+            type(error).__name__,
+            token_error_category(error),
+        )
         raise HTTPException(
             status_code=401,
             detail="로그인 정보가 만료됐습니다. 다시 로그인해 주세요.",
