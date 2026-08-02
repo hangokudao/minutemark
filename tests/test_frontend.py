@@ -1,3 +1,4 @@
+import hashlib
 import io
 import time
 import unittest
@@ -17,6 +18,7 @@ class FrontendContractTest(unittest.TestCase):
         cls.html = (app.STATIC_DIR / "index.html").read_text(encoding="utf-8")
         cls.javascript = (app.STATIC_DIR / "app.js").read_text(encoding="utf-8")
         cls.styles = (app.STATIC_DIR / "styles.css").read_text(encoding="utf-8")
+        cls.backend = Path(app.__file__).read_text(encoding="utf-8")
 
     def test_client_routes_are_refreshable(self):
         paths = {route.path for route in app.app.routes}
@@ -41,9 +43,19 @@ class FrontendContractTest(unittest.TestCase):
     def test_mobile_navigation_exposes_required_destinations(self):
         self.assertIn('id="mobile-menu-button"', self.html)
         self.assertIn('id="mobile-menu-dialog"', self.html)
-        for path in ("/meetings", "/samples", "/account", "/privacy"):
+        for path in (
+            "/meetings/new",
+            "/meetings",
+            "/samples",
+            "/account",
+            "/privacy",
+        ):
             self.assertIn(f'href="{path}"', self.html)
         self.assertIn("@media (max-width: 560px)", self.styles)
+        self.assertIn(
+            "body.is-member .meeting-nav.member-only {\n    display: none !important;",
+            self.styles,
+        )
 
     def test_history_and_unsaved_draft_guards_are_registered(self):
         self.assertIn('window.addEventListener("popstate"', self.javascript)
@@ -69,6 +81,29 @@ class FrontendContractTest(unittest.TestCase):
         self.assertIn("invalidatePrivateRequests();\n  await signOut(auth);", self.javascript)
         self.assertIn("isPrivateSessionCurrent(session)", self.javascript)
         self.assertIn("clearPrivateResult();\n    await navigate(\"/meetings\"", self.javascript)
+
+    def test_csp_allows_only_required_google_login_script_origin(self):
+        self.assertIn(
+            "script-src 'self' https://www.gstatic.com https://apis.google.com",
+            self.backend,
+        )
+        self.assertIn(
+            'response.headers["Cross-Origin-Opener-Policy"]',
+            self.backend,
+        )
+        self.assertIn('"same-origin-allow-popups"', self.backend)
+
+    def test_google_login_uses_patched_pinned_firebase_auth(self):
+        vendor = app.STATIC_DIR / "vendor" / "firebase-auth-12.16.0-patched.js"
+        source = vendor.read_text(encoding="utf-8")
+        self.assertIn('import("/static/vendor/firebase-auth-12.16.0-patched.js")', self.javascript)
+        self.assertEqual(
+            hashlib.sha256(vendor.read_bytes()).hexdigest(),
+            "902cd602e8a78b19f49b5eeea05fcc9313d5b65b2d1ac7bfdb6e27a628960261",
+        )
+        self.assertIn("Modified by MinuteMark on 2026-08-02", source)
+        self.assertIn('void 0!==n?t(!!n):_fail(e,"internal-error")', source)
+        self.assertNotIn('void 0!==n&&t(!!n),_fail(e,"internal-error")', source)
 
     def test_destructive_actions_use_explicit_confirmation_controls(self):
         self.assertIn('id="delete-meeting-dialog"', self.html)

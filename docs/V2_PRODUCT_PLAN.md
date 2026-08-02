@@ -15,13 +15,14 @@ BLOCKED`다.
 | 인증·API | Firebase ID token 서명·만료·폐기 확인, 인증 전 multipart body 차단 | 코드·테스트 PASS |
 | 저장·소유권 | UID 하위 Firestore 문서, 비공개 Storage, 객체 generation 고정, 5분 signed URL, 타 사용자 404 | 코드·테스트 PASS |
 | 삭제 | 오디오→문서, 고아 객체 정리, 전체 content→Auth 사용자 순서와 멱등 재시도 | 코드·테스트 PASS |
-| 회귀 | 운영 Docker 이미지에서 분석·회원·보안·라우팅 | 43/43 PASS |
-| GCP | `myhanbro@gmail.com`, 서울 Firestore·Storage, deny-all Rules, PAP·UBLA, soft delete 0, 최소권한 runtime SA | IAM PASS · 새 A6 secret 버전 미확인 |
+| 회귀 | 운영 Docker 이미지에서 분석·회원·보안·라우팅 | 45/45 PASS |
+| GCP | `myhanbro@gmail.com`, 서울 Firestore·Storage, deny-all Rules, PAP·UBLA, soft delete 0, 최소권한 runtime SA | PASS |
+| A6 secret·라우터 | 기존 secret 버전 `1`, 실제 V2 샘플 `gpt-5.6-luna`, grounding true | HTTP 200 PASS |
 | signed audio URL | runtime SA self `signBlob`와 객체 권한 확인 | 운영 리비전 실제 발급 미검증 |
-| Windows Chrome | 브리지 Chrome 제어 연결 timeout | BLOCKED · 미검증 |
-| 인증 후 사용자 흐름 | Google 계정 선택 뒤 브리지 `Runtime.evaluate` timeout | FAILED · 미검증 |
+| Windows Chrome | 브리지는 timeout, 같은 Chrome CDP fallback에서 Google 브라우저 OAuth·로그아웃 | 브라우저 OAuth PASS · 백엔드 통합 로컬 FAIL |
+| 인증 후 사용자 흐름 | 제목·실제 WAV·고지·draft 경고·history 확인, 목록은 로컬 ADC `firebaseauth.users.get` 부재로 401 | 부분 PASS · 저장 흐름 미검증 |
 | 공개 화면 1440×900·390×844 | 격리 Chrome fallback, privacy·메뉴·overflow·요청 실패 확인 | 게스트 화면 PASS |
-| 모바일 회원 흐름 | 로그인 뒤 목록·상세·삭제 | 미검증 |
+| 모바일 회원 흐름 | 390×844 로그인 상태에서 새 회의·목록·계정·로그아웃 메뉴 | 메뉴 PASS · 상세·삭제 미검증 |
 | 배포 | 현재 Cloud Run은 기존 compute SA의 V1 리비전, V2 배포 미승인 | 미수행 |
 
 구현 완료를 출시 승인으로 해석하지 않는다. 실제 Google 로그인 뒤 분석·저장·
@@ -579,7 +580,7 @@ Cloud Storage 새 버킷은 별도 설정이 없으면 soft delete가 기본 7�
 
 승인 기준:
 
-- 분석·회원·보안·라우팅 회귀 43개 통과
+- 분석·회원·보안·라우팅 회귀 45개 통과
 - 서로 다른 테스트 계정 2개로 IDOR 차단 확인
 - 회원 업로드 실제 1회, 새로고침 재진입, 회의 삭제 확인
 - `/api/health` commit과 배포 후보 SHA 일치
@@ -675,11 +676,11 @@ Oracle의 최초 브라우저 답변은 자동 후속 전송 오류 뒤 partial 
 ## 13. 다음 행동과 종료 기준
 
 Phase 0→6 구현과 코드 검증은 한 번에 완료했다. 다음 행동은 새 기능 추가가 아니라
-출시 차단 증거 수집이다. Windows Chrome 브리지가 정상화되면 동일 브라우저에서
-Google 로그인→실제 1회 분석·저장→새로고침 재진입→회의 삭제→계정 탈퇴와
-390×844 흐름을 다시 확인한다. A6API의 데이터 처리 조건과 개인정보처리자 법적
-표시명도 확정하고, 배포된 runtime SA로 signed URL 발급을 확인한 뒤에만 배포
-완료 판정을 내린다.
+출시 차단 증거 수집이다. 실제 Google 로그인·로그아웃, 제목·WAV·고지·draft 경고,
+390×844 회원 메뉴는 확인했다. 목록·실제 1회 분석·저장→새로고침 재진입→회의
+삭제→계정 탈퇴는 로컬 개인 자격증명으로 runtime 검증을 대신할 수 없어 미검증이다.
+A6API의 데이터 처리 조건과 개인정보처리자 법적 표시명을 확정하고, 배포된 runtime
+SA로 이 흐름과 signed URL 발급을 확인한 뒤에만 배포 완료 판정을 내린다.
 
 2026-08-02 release hardening에서 공개 샘플 영속 cache, 서비스 전체 오디오
 512MiB cap, Firestore 750KiB 사전 거부를 구현했다. 저장 음성과 회원 API에는

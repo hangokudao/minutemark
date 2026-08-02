@@ -954,7 +954,7 @@ async function initialize() {
     }
     const [appModule, authModule] = await Promise.all([
       import("https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js"),
-      import("https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js"),
+      import("/static/vendor/firebase-auth-12.16.0-patched.js"),
     ]);
     ({ initializeApp } = appModule);
     ({

@@ -154,12 +154,15 @@ async def add_security_headers(request: Request, call_next):
         "media-src 'self' blob: https://storage.googleapis.com "
         "https://*.storage.googleapis.com; "
         "object-src 'none'; "
-        "script-src 'self' https://www.gstatic.com; "
+        "script-src 'self' https://www.gstatic.com https://apis.google.com; "
         "style-src 'self'; "
         "worker-src 'self' blob:"
     )
     response.headers["Permissions-Policy"] = (
         "camera=(), geolocation=(), microphone=()"
+    )
+    response.headers["Cross-Origin-Opener-Policy"] = (
+        "same-origin-allow-popups"
     )
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Strict-Transport-Security"] = "max-age=31536000"
