@@ -7,10 +7,10 @@ services:
     environment:
       A6_API_BASE: ${A6_API_BASE:-https://api.a6api.com/v1}
       A6_API_KEY: ${A6_API_KEY:?A6_API_KEY를 .env에 설정하세요}
-      A6_MODEL: ${A6_MODEL:-claude-sonnet-5}
-      A6_VENDOR_ID: ${A6_VENDOR_ID:-1263}
-      A6_INPUT_USD_PER_M: ${A6_INPUT_USD_PER_M:-0.0180}
-      A6_OUTPUT_USD_PER_M: ${A6_OUTPUT_USD_PER_M:-0.0900}
+      A6_MODEL: ${A6_MODEL:-gpt-5.6-luna}
+      A6_VENDOR_ID: ${A6_VENDOR_ID:-1729}
+      A6_INPUT_USD_PER_M: ${A6_INPUT_USD_PER_M:-0.005256}
+      A6_OUTPUT_USD_PER_M: ${A6_OUTPUT_USD_PER_M:-0.0315}
       A6_RUN_BUDGET_USD: ${A6_RUN_BUDGET_USD:-1.0}
       A6_REQUEST_RESERVE_USD: ${A6_REQUEST_RESERVE_USD:-0.01}
       A6_REQUEST_TIMEOUT_SECONDS: ${A6_REQUEST_TIMEOUT_SECONDS:-60}
@@ -36,10 +36,10 @@ services:
     environment:
       A6_API_BASE: ${A6_API_BASE:-https://api.a6api.com/v1}
       A6_API_KEY: ${A6_API_KEY:?A6_API_KEY를 .env에 설정하세요}
-      A6_MODEL: ${A6_MODEL:-claude-sonnet-5}
-      A6_VENDOR_ID: ${A6_VENDOR_ID:-1263}
-      A6_INPUT_USD_PER_M: ${A6_INPUT_USD_PER_M:-0.0180}
-      A6_OUTPUT_USD_PER_M: ${A6_OUTPUT_USD_PER_M:-0.0900}
+      A6_MODEL: ${A6_MODEL:-gpt-5.6-luna}
+      A6_VENDOR_ID: ${A6_VENDOR_ID:-1729}
+      A6_INPUT_USD_PER_M: ${A6_INPUT_USD_PER_M:-0.005256}
+      A6_OUTPUT_USD_PER_M: ${A6_OUTPUT_USD_PER_M:-0.0315}
       A6_RUN_BUDGET_USD: ${A6_RUN_BUDGET_USD:-1.0}
       WHISPER_MODEL: small
       WHISPER_CACHE: /models/whisper

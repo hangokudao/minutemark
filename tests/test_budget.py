@@ -198,7 +198,7 @@ class A6RetryTest(unittest.TestCase):
 
         payload = request_a6_json(
             {
-                "model": "claude-sonnet-5",
+                "model": "test-model",
                 "response_format": {"type": "json_schema"},
                 "messages": [],
             }
