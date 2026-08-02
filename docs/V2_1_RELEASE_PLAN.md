@@ -1,7 +1,7 @@
 # MinuteMark V2.1 버전업 실행 기록
 
 > 기준일: 2026-08-02
-> 기준 부모 커밋: `0170848` · 이 문서와 고지를 포함한 릴리스 커밋은 Git에서 식별한다.
+> 후보 커밋: `6756663d781bfa77155293ef4fe1a852e93f1f5a`
 > 단계: `RELEASE_CANDIDATE · IN_PROGRESS`
 > 이 문서가 V2.1의 활성 범위·검증·출시 판단 기록이다.
 
@@ -53,14 +53,15 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 | --- | --- | --- | --- |
 | 독립 빌드 | Docker 이미지와 전체 회귀 | 동일 소스 이미지 빌드·테스트 성공 | `PASS` · image `2546706…`, 48/48 |
 | 인증 경계 | 비인증·잘못된 provider·폐기 token 테스트 | 서버가 안전한 401로 거부 | 기존 자동 증거 PASS |
+| 실제 Google 로그인 | 배포 후보에서 Google 계정 선택·로그인 | 계정 선택 뒤 회원 화면 진입 | `BLOCKED` · 승인 도메인은 추가됐으나 Chrome에서 계정 선택 창이 열리지 않음 |
 | 사용자 소유권 | 다른 실제 Google 사용자 직접 요청 | 목록·상세·오디오가 404 | `BLOCKED` · 배포 후보에서 검증 예정 |
 | 저장·재열람 | 실제 회원 오디오 1회 | Firestore·Storage 저장 후 상세 복원 | `BLOCKED` · 배포 후보에서 검증 예정 |
 | 삭제 | 실제 회의·계정 삭제 뒤 저장소 조회 | 문서·객체·Auth 사용자 잔여 0 | `BLOCKED` · 배포 후보에서 검증 예정 |
-| 공개 UI | Windows Chrome 1440×900·390×844 | privacy·샘플·메뉴에 막힘·넘침 없음 | `PASS` · Chrome 브리지 `019fc1c5…` 직접 확인 |
-| 회원가입 UI | 회원 기능을 켠 독립 후보의 `/auth` | 가입 안내와 Google 버튼 표시 | `BLOCKED` · 배포 후보에서 검증 예정 |
+| 공개 UI | Windows Chrome 1440×900·390×844 | privacy·샘플·메뉴에 막힘·넘침 없음 | `BLOCKED` · 샘플·auth·메뉴는 PASS, privacy 하단 시각 확인 timeout |
+| 회원가입 UI | 회원 기능을 켠 독립 후보의 `/auth` | 가입 안내와 Google 버튼 표시 | `PASS` · 실제 0% 후보에서 표시·새로고침 확인 |
 | 개인정보 고지 | 공개 privacy 화면과 실제 데이터 흐름 | 문의처·수집·저장·외부 AI 전송 설명 일치 | `PASS` · 공개 화면 직접 확인 |
 | A6 외부 처리 | 포트폴리오 한계·전사문 전송·미확인 조건 고지 | 민감정보 업로드 금지와 확인 범위를 모든 사용자가 알 수 있음 | `PASS` · samples·privacy·auth 브라우저 확인 |
-| 배포·복구 | 후보 commit·runtime·기존 V1 | 후보 검증 성공, V1 유지·rollback 가능 | `BLOCKED` · V1 유지 |
+| 배포·복구 | 후보 commit·runtime·기존 V1 | 후보 검증 성공, V1 유지·rollback 가능 | `BLOCKED` · 0% 후보 정상, V1 100% 유지, 회원 QA 미완료 |
 
 필수 행에 `FAIL` 또는 `BLOCKED`가 있으면 V2.1을 공개 배포하지 않는다. 기존 V1
 트래픽은 그대로 유지한다.
@@ -129,6 +130,20 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 - 판정: 최초 수정 전 `/auth` 확인은 `FAILED`; 외부 Firebase 모듈보다 먼저 모달을
   표시하고 준비 전 Google 버튼을 비활성화하도록 수정한 뒤, 최초 진입과 연속
   새로고침 3회가 실제 캡처에서 모두 `SUCCESS`
+
+### 실제 Cloud Run 0% 후보
+
+- 리비전: `minutemark-00009-xac`
+- 태그 URL: `https://v2-rc---minutemark-2u3l25uhba-du.a.run.app`
+- `/api/health`: 200, commit
+  `6756663d781bfa77155293ef4fe1a852e93f1f5a`
+- 런타임 계정: `minutemark-runtime@minutemark-portfolio.iam.gserviceaccount.com`
+- 기존 공개 V1 `minutemark-00007-w6c`: 트래픽 100% 유지
+- Firebase Authentication 승인 도메인: 기존 4개를 보존하고 후보 태그 도메인 1개를
+  추가한 뒤 Admin API에서 5개를 다시 읽어 확인
+- Google 로그인 재시험: `/auth`, 1440×900에서 버튼을 한 번 눌렀으나 계정 선택
+  화면이 열리지 않아 `BLOCKED`. 비밀번호·MFA·cookie·token은 입력하거나 기록하지 않음
+- 로그인 전제 조건이 충족되지 않아 업로드·유료 분석·저장·삭제는 수행하지 않음
 
 ## 9. 이전 실행 증거
 
