@@ -20,10 +20,10 @@ WHISPER_LANGUAGE = os.environ.get("WHISPER_LANGUAGE", "auto").strip().lower()
 MIN_AUDIO_FILES = int(os.environ.get("MIN_AUDIO_FILES", "2"))
 A6_API_BASE = os.environ.get("A6_API_BASE", "https://api.a6api.com/v1").rstrip("/")
 A6_API_KEY = os.environ.get("A6_API_KEY", "")
-A6_MODEL = os.environ.get("A6_MODEL", "claude-sonnet-5")
-A6_VENDOR_ID = os.environ.get("A6_VENDOR_ID", "1263")
-A6_INPUT_USD_PER_M = float(os.environ.get("A6_INPUT_USD_PER_M", "0.0180"))
-A6_OUTPUT_USD_PER_M = float(os.environ.get("A6_OUTPUT_USD_PER_M", "0.0900"))
+A6_MODEL = os.environ.get("A6_MODEL", "gpt-5.6-luna")
+A6_VENDOR_ID = os.environ.get("A6_VENDOR_ID", "1729")
+A6_INPUT_USD_PER_M = float(os.environ.get("A6_INPUT_USD_PER_M", "0.005256"))
+A6_OUTPUT_USD_PER_M = float(os.environ.get("A6_OUTPUT_USD_PER_M", "0.0315"))
 A6_RUN_BUDGET_USD = float(os.environ.get("A6_RUN_BUDGET_USD", "1.0"))
 A6_REQUEST_TIMEOUT_SECONDS = float(
     os.environ.get("A6_REQUEST_TIMEOUT_SECONDS", "60")
@@ -217,7 +217,8 @@ def a6_chat(segments: list[dict]) -> tuple[dict, float, dict, float, bool]:
         "model": A6_MODEL,
         "stream": False,
         "temperature": 0,
-        "max_tokens": 2048,
+        "reasoning_effort": "none",
+        "max_completion_tokens": 2048,
         "response_format": {
             "type": "json_schema",
             "json_schema": {
