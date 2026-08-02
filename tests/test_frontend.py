@@ -105,6 +105,13 @@ class FrontendContractTest(unittest.TestCase):
         self.assertIn('void 0!==n?t(!!n):_fail(e,"internal-error")', source)
         self.assertNotIn('void 0!==n&&t(!!n),_fail(e,"internal-error")', source)
 
+    def test_google_only_auth_and_privacy_contact_are_explicit(self):
+        self.assertIn("첫 로그인은 회원가입으로 처리됩니다.", self.html)
+        self.assertIn("Google로 계속하기", self.html)
+        self.assertNotIn('type="password"', self.html)
+        self.assertIn("MinuteMark 개인정보 보호 담당", self.html)
+        self.assertIn("mailto:hangokudao@gmail.com", self.html)
+
     def test_destructive_actions_use_explicit_confirmation_controls(self):
         self.assertIn('id="delete-meeting-dialog"', self.html)
         self.assertIn('id="confirm-delete-meeting"', self.html)

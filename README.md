@@ -105,7 +105,7 @@ A6 스마트 라우터는 판매자에 따라 OpenAI 호환 기능 지원 범위
 | 앱 추정 A6 월 예산 | $1 |
 | Cloud Run 서비스 최대 인스턴스 | 1, 확인 완료 |
 | Google Cloud 프로젝트 예산 | 월 ₩1,000 |
-| 결제 알림 | 50%·90%·100%, `myhanbro@gmail.com` |
+| 결제 알림 | 50%·90%·100%, 프로젝트 결제 관리자 |
 | A6 토큰 하드 한도 $1 | 총 $1.00, 남은 $0.99 확인 완료 |
 
 Google Cloud 예산은 알림이며 결제를 자동 중단하는 하드 캡이 아닙니다.
@@ -125,7 +125,7 @@ A6API 토큰 `local-meeting-notes-mvp`의 총한도는 $1.00으로 설정했습�
 
 2026-08-02 V2 로컬 후보의 Windows Chrome 브리지는 Chrome 제어 연결 timeout으로
 `BLOCKED`였습니다. 이후 같은 Windows Chrome을 CDP Playwright로 제한해 실제
-`myhanbro@gmail.com` Google 로그인·로그아웃, 제목·WAV 선택·참여자 확인·이탈
+개인 Google 계정의 로그인·로그아웃, 제목·WAV 선택·참여자 확인·이탈
 경고, 390×844 회원 메뉴까지 확인했습니다. 로컬 개인 자격증명에는 Firebase Auth
 사용자 조회와 runtime `signBlob` 권한이 없어 목록·저장·재열람·삭제·탈퇴는
 `미검증`이며 다른 자동화 결과로 성공 처리하지 않았습니다. 항목별 근거는
@@ -158,7 +158,8 @@ docker compose run --rm -v ./tests:/tests:ro --entrypoint python web \
 
 현재 기존 분석 회귀와 Firebase token 검증, 인증 전 body 차단, 사용자 소유권,
 저장 한도, 객체 generation 고정, 고아 객체 정리, 보상 삭제, content-first 탈퇴,
-라우팅·모바일 메뉴·draft 경고·개인 요청 취소를 포함한 총 45개가 통과합니다.
+라우팅·모바일 메뉴·draft 경고·개인 요청 취소·Google 전용 인증과 문의처 계약을
+포함한 총 46개가 통과합니다.
 최종 이미지의 `pip-audit`도 알려진
 취약점 0건입니다.
 
@@ -168,7 +169,7 @@ GitHub `main`이 배포 정본입니다. `main`에 병합하면 Cloud Build가
 [`cloudbuild.yaml`](./cloudbuild.yaml)에 따라 다음 순서로 실행합니다.
 
 1. Docker 이미지 빌드
-2. 회귀 테스트 45개
+2. 회귀 테스트 46개
 3. Git 커밋 SHA로 이미지 태그 후 Artifact Registry에 push
 4. Cloud Run `minutemark`에 트래픽 0% 후보 리비전으로 배포
 
@@ -182,6 +183,7 @@ token은 그대로이고 A6 라우터만 바뀐 사실을 확인했으며, 같�
 ## 문서
 
 - [운영·검증 기록](./NOTES.md)
+- [V2.1 버전업 실행 기록](./docs/V2_1_RELEASE_PLAN.md) — 현재 활성 출시 판단 문서
 - [V2 제품·구현 계획](./docs/V2_PRODUCT_PLAN.md)
 - [V2 릴리스 QA 증거](./docs/V2_QA_EVIDENCE.md)
 - [디자인 레퍼런스 10선](./docs/DESIGN_REFERENCES.md)

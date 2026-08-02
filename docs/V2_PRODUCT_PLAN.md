@@ -15,7 +15,7 @@ BLOCKED`다.
 | 인증·API | Firebase ID token 서명·만료·폐기 확인, 인증 전 multipart body 차단 | 코드·테스트 PASS |
 | 저장·소유권 | UID 하위 Firestore 문서, 비공개 Storage, 객체 generation 고정, 5분 signed URL, 타 사용자 404 | 코드·테스트 PASS |
 | 삭제 | 오디오→문서, 고아 객체 정리, 전체 content→Auth 사용자 순서와 멱등 재시도 | 코드·테스트 PASS |
-| 회귀 | 운영 Docker 이미지에서 분석·회원·보안·라우팅 | 45/45 PASS |
+| 회귀 | 운영 Docker 이미지에서 분석·회원·보안·라우팅 | V2.1 46/46 PASS |
 | GCP | `myhanbro@gmail.com`, 서울 Firestore·Storage, deny-all Rules, PAP·UBLA, soft delete 0, 최소권한 runtime SA | PASS |
 | A6 secret·라우터 | 기존 secret 버전 `1`, 실제 V2 샘플 `gpt-5.6-luna`, grounding true | HTTP 200 PASS |
 | signed audio URL | runtime SA self `signBlob`와 객체 권한 확인 | 운영 리비전 실제 발급 미검증 |
@@ -49,13 +49,19 @@ FastAPI가 검증한 사용자 요청에 대해서만 수행한다.
 설계 당시 판정은 `CONDITIONAL GO`였다. 아래 출시 차단 조건을 확인하기 전에는 회원
 업로드를 공개하지 않는다.
 
-1. 개인정보처리자 법적 표시명 확정 (`myhanbro@gmail.com` 문의 주소는 반영 완료)
+1. 개인정보 보호 담당 표시와 문의처 확정
+   (`MinuteMark 개인정보 보호 담당`, `hangokudao@gmail.com` 반영 완료)
 2. A6API의 계약 주체, 처리 국가, 보관 기간, 학습 사용, 재위탁 사실 확인
 3. 실제 GCP 대상과 Storage·OAuth 설정을 읽기 증거로 확인 (완료)
 
 결정을 뒤집는 조건은 하나다. A6API의 데이터 처리 조건이 회원 회의 전사문을
 보내기에 적절하지 않다면 회원 기능 공개를 보류하고 구조화 공급자를 먼저
 교체한다.
+
+V2.1부터 개인 Google 계정은 로그인·업로드·삭제·탈퇴·교차 사용자 QA에 사용하지
+않는다. 실제 회원 E2E는 별도의 폐기 가능한 Google QA 계정 2개가 제공될 때까지
+`BLOCKED`이며, 세부 실행 게이트는 [`V2_1_RELEASE_PLAN.md`](./V2_1_RELEASE_PLAN.md)를
+활성 정본으로 사용한다.
 
 ## 2. V2 범위
 
@@ -580,7 +586,7 @@ Cloud Storage 새 버킷은 별도 설정이 없으면 soft delete가 기본 7�
 
 승인 기준:
 
-- 분석·회원·보안·라우팅 회귀 45개 통과
+- 분석·회원·보안·라우팅 회귀 46개 통과
 - 서로 다른 테스트 계정 2개로 IDOR 차단 확인
 - 회원 업로드 실제 1회, 새로고침 재진입, 회의 삭제 확인
 - `/api/health` commit과 배포 후보 SHA 일치

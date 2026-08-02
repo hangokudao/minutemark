@@ -8,7 +8,7 @@ Windows Chrome 브리지는 작업 `019fc0b4-5517-7b92-a5a7-153cbf9ed593`에서 
 제어 연결이 timeout 되어 `BLOCKED`로 끝났다. timeout을 PASS로 바꾸지 않았다.
 공개 화면은 격리 Playwright와 `/usr/bin/google-chrome`으로 재검증했고, 실제
 Google 로그인은 같은 Windows Chrome을 CDP Playwright로 제한해 검증했다. 이
-fallback은 `myhanbro@gmail.com` 계정 선택과 동의, 입력 경계, 모바일 메뉴,
+fallback은 당시 개인 Google 계정 선택과 동의, 입력 경계, 모바일 메뉴,
 로그아웃에만 사용했다. 저장 결과를 만들거나 성공 상태를 주입하지 않았다.
 
 ## 자동·HTTP 검증
@@ -35,7 +35,7 @@ fallback은 `myhanbro@gmail.com` 계정 선택과 동의, 입력 경계, 모바�
 | 항목 | 사용 URL | 화면 크기 | 수행한 행동 | 기대 결과 | 실제 결과 | HTTP·저장소 상태 | 스크린샷 경로 | 판정 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | A. 공개 샘플·개인정보처리방침 | `http://127.0.0.1:6993/samples`, `/privacy`; 일회용 V2 RC `/api/analyze-sample/action` | 1440×900 | 샘플 2개 노출, privacy 열기·닫기, 실제 V2 샘플 분석 | 비로그인 접근, 실제 샘플 결과 확인 | 목록·privacy·복귀 확인. 실제 V2 분석은 Luna·grounding true였으나 결과 화면 클릭 증거는 미수집 | 화면 200, 분석 POST 200, 요청 실패 0 | `/tmp/minutemark-v2-desktop.png` | 미검증 |
-| B. 실제 Google 로그인 | `http://localhost:8000/auth?next=%2Fmeetings%2Fnew` | 1440×900 | 실제 `myhanbro@gmail.com` 선택·동의 | Google 로그인 후 백엔드 회원 API까지 인증 | 브라우저 OAuth·로그아웃·재로그인은 성공했지만 백엔드 통합은 로컬 ADC 권한 때문에 실패 | Firebase token `aud=minutemark-portfolio`, issuer·provider·시간 정상. `GET /api/meetings` → 401 | `C:\Users\myhan\AppData\Local\Temp\minutemark-v2-windows-signed-in.png` | FAIL |
+| B. 실제 Google 로그인 | `http://localhost:8000/auth?next=%2Fmeetings%2Fnew` | 1440×900 | 당시 개인 Google 계정 선택·동의 | Google 로그인 후 백엔드 회원 API까지 인증 | 브라우저 OAuth·로그아웃·재로그인은 성공했지만 백엔드 통합은 로컬 ADC 권한 때문에 실패 | Firebase token `aud=minutemark-portfolio`, issuer·provider·시간 정상. `GET /api/meetings` → 401 | `C:\Users\myhan\AppData\Local\Temp\minutemark-v2-windows-signed-in.png` | FAIL |
 | C. 제목·참여자 고지 | `http://localhost:8000/meetings/new` | 1440×900 | 제목 입력, 실제 `ko-01-action.wav` 선택, 고지 확인, 이탈 취소·확인 | 세 항목 뒤 저장 버튼 활성화, 파일 선택 시 이탈 경고 | 버튼 활성화, 동일 경고 2회, 취소 시 화면 유지·확인 시 `/samples` 이동 | 분석·저장 POST 없음 | `C:\Users\myhan\AppData\Local\Temp\minutemark-v2-windows-meeting-draft.png` | PASS |
 | D. 오디오 분석·저장 | `http://localhost:8000/meetings/new` | 1440×900 | 실제 파일 선택까지만 수행 | A6 분석 뒤 Firestore·Storage 저장 | 로컬 ADC에 runtime `signBlob` 권한이 없어 저장 성공을 만들지 않음. 별도 일회용 V2 공개 샘플 분석만 Luna·grounding true | 회원 POST 미수행, Firestore·Storage 변화 없음 | 입력 화면은 C와 같음 | 미검증 |
 | E. 회의 목록 | `http://localhost:8000/meetings` | 1440×900 | 로그인 뒤 목록·새로고침 요청 | 실제 저장 회의 표시 | 화면 진입·새로고침은 됐지만 로컬 ADC가 token 폐기 확인용 `firebaseauth.users.get`을 수행하지 못해 오류 상태 표시 | `GET /api/meetings` → 401, `PermissionDeniedError`; 운영 runtime 역할에는 해당 권한 있음 | `C:\Users\myhan\AppData\Local\Temp\minutemark-v2-windows-meetings.png` | FAIL |
@@ -55,6 +55,10 @@ Google 팝업은 기능적으로 완료됐지만 Chrome 콘솔에 COOP 관련 `w
 CSS 수정 뒤 모바일 재확인은 저장 성공을 가장하지 않도록 실제 로그인 때 확인한 메뉴
 증거와 별개로 `body.is-member` 표시 상태만 재현했다. 따라서 M의 전체 판정은 계속
 `미검증`이다.
+
+V2.1 이후에는 개인 Google 계정을 QA에 사용하지 않는다. 별도의 폐기 가능한 QA
+계정이 없으므로 실제 로그인·저장·삭제·탈퇴·교차 사용자 흐름은 반복하지 않고
+`BLOCKED`로 유지한다.
 
 ## GCP 출시 게이트
 
