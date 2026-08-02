@@ -1,0 +1,124 @@
+import io
+import time
+import unittest
+from pathlib import Path
+from unittest.mock import AsyncMock, Mock, patch
+
+from fastapi import HTTPException
+from starlette.datastructures import Headers, UploadFile
+
+import app
+import members
+
+
+class FrontendContractTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.html = (app.STATIC_DIR / "index.html").read_text(encoding="utf-8")
+        cls.javascript = (app.STATIC_DIR / "app.js").read_text(encoding="utf-8")
+        cls.styles = (app.STATIC_DIR / "styles.css").read_text(encoding="utf-8")
+
+    def test_client_routes_are_refreshable(self):
+        paths = {route.path for route in app.app.routes}
+        self.assertTrue(
+            {
+                "/samples",
+                "/auth",
+                "/meetings",
+                "/meetings/new",
+                "/meetings/{meeting_id}",
+                "/account",
+                "/privacy",
+            }.issubset(paths)
+        )
+
+    def test_new_meeting_requires_title_and_participant_notice_controls(self):
+        self.assertIn('id="meeting-title"', self.html)
+        self.assertIn('maxlength="80"', self.html)
+        self.assertIn('id="participant-notice"', self.html)
+        self.assertIn('id="analyze-save-button"', self.html)
+
+    def test_mobile_navigation_exposes_required_destinations(self):
+        self.assertIn('id="mobile-menu-button"', self.html)
+        self.assertIn('id="mobile-menu-dialog"', self.html)
+        for path in ("/meetings", "/samples", "/account", "/privacy"):
+            self.assertIn(f'href="{path}"', self.html)
+        self.assertIn("@media (max-width: 560px)", self.styles)
+
+    def test_history_and_unsaved_draft_guards_are_registered(self):
+        self.assertIn('window.addEventListener("popstate"', self.javascript)
+        self.assertIn('window.addEventListener("beforeunload"', self.javascript)
+        self.assertIn("history.pushState", self.javascript)
+        self.assertIn("history.replaceState", self.javascript)
+
+    def test_destructive_actions_use_explicit_confirmation_controls(self):
+        self.assertIn('id="delete-meeting-dialog"', self.html)
+        self.assertIn('id="confirm-delete-meeting"', self.html)
+        self.assertIn('id="delete-account-confirm"', self.html)
+        self.assertIn('value.trim() !== "탈퇴"', self.javascript)
+        self.assertNotIn("이 회의의 원본 오디오와 분석 결과를 삭제할까요?", self.javascript)
+
+
+class MeetingFormBoundaryTest(unittest.IsolatedAsyncioTestCase):
+    def request_with_form(self, form):
+        request = Mock()
+        request.headers = {}
+        request.form = AsyncMock(return_value=form)
+        return request
+
+    def audio_upload(self):
+        return UploadFile(
+            io.BytesIO(b"audio"),
+            filename="meeting.wav",
+            headers=Headers({"content-type": "audio/wav"}),
+        )
+
+    async def test_participant_notice_is_required_before_analysis(self):
+        request = self.request_with_form(
+            {"audio": self.audio_upload(), "title": "제품 회의"}
+        )
+        store = Mock()
+        store.count.return_value = 0
+
+        with (
+            patch(
+                "app.authenticated_user",
+                return_value=members.AuthUser("user-a", "", int(time.time())),
+            ),
+            patch("app.get_meeting_store", return_value=store),
+            patch("app.analyze_audio") as analyze_audio,
+        ):
+            with self.assertRaises(HTTPException) as raised:
+                await app.create_meeting(request)
+
+        self.assertEqual(raised.exception.status_code, 400)
+        analyze_audio.assert_not_called()
+
+    async def test_user_title_is_saved_after_notice_confirmation(self):
+        request = self.request_with_form(
+            {
+                "audio": self.audio_upload(),
+                "title": "  분기   계획 회의  ",
+                "participant_notice_confirmed": "true",
+            }
+        )
+        store = Mock()
+        store.count.return_value = 0
+        store.create.return_value = {"id": "meeting-a", "title": "분기 계획 회의"}
+
+        with (
+            patch(
+                "app.authenticated_user",
+                return_value=members.AuthUser("user-a", "", int(time.time())),
+            ),
+            patch("app.get_meeting_store", return_value=store),
+            patch("app.analyze_audio", return_value={"segments": []}),
+        ):
+            result = await app.create_meeting(request)
+
+        self.assertEqual(result["title"], "분기 계획 회의")
+        self.assertEqual(store.create.call_args.args[2], "분기 계획 회의")
+
+
+if __name__ == "__main__":
+    unittest.main()

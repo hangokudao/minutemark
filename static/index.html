@@ -3,186 +3,400 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
     <meta
       name="description"
       content="실제 Whisper와 LLM이 회의 음성을 전사하고 결정과 할 일을 근거와 함께 추출합니다."
     />
     <title>MinuteMark · AI 회의 노트</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/static/styles.css" />
-    <script src="/static/app.js" defer></script>
+    <script type="module" src="/static/app.js"></script>
   </head>
   <body>
-    <header class="app-bar">
-      <a class="brand" href="/" aria-label="MinuteMark 홈">
-        <span class="brand-mark" aria-hidden="true">
-          <i></i><i></i><i></i><i></i>
-        </span>
-        <span>MinuteMark</span>
-      </a>
-      <div class="model-badge">
-        <span class="live-dot" aria-hidden="true"></span>
-        <span id="budget-status">실제 AI 추론 · 월 $1 제한</span>
-      </div>
-    </header>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="MinuteMark 탐색">
+        <a class="brand route-link" href="/samples" aria-label="MinuteMark 공개 샘플">
+          <span class="brand-mark" aria-hidden="true">
+            <i></i><i></i><i></i><i></i>
+          </span>
+          <span>MinuteMark</span>
+        </a>
 
-    <main>
-      <section class="workspace-intro" aria-labelledby="page-title">
-        <div>
-          <p class="eyebrow">AI MEETING NOTES</p>
-          <h1 id="page-title">회의에서 정해진 것만,<br />근거와 함께.</h1>
-          <p class="intro-copy">
-            음성을 올리면 Whisper가 전사하고, A6API의 Claude가 결정과
-            할 일을 구조화합니다. 결과를 누르면 실제 발화 구간으로 이동합니다.
+        <button class="new-analysis-link" id="new-meeting-button" type="button">
+          새 회의
+        </button>
+
+        <button
+          class="mobile-menu-button"
+          id="mobile-menu-button"
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+        >
+          메뉴
+        </button>
+
+        <nav class="sidebar-nav" aria-label="주요 화면">
+          <a class="route-link member-only" href="/meetings">회의 기록</a>
+          <a class="route-link" href="/samples">공개 샘플</a>
+          <a
+            href="https://github.com/hangokudao/minutemark"
+            target="_blank"
+            rel="noreferrer"
+          >GitHub 저장소</a>
+        </nav>
+
+        <section class="meeting-nav" aria-labelledby="meeting-nav-title">
+          <div class="meeting-nav-heading">
+            <h2 id="meeting-nav-title">최근 회의</h2>
+            <span id="meeting-limit">0 / 5</span>
+          </div>
+          <div id="meeting-list" class="meeting-list">
+            <p>로그인하면 저장한 회의가 표시됩니다.</p>
+          </div>
+        </section>
+
+        <div class="sidebar-note">
+          <strong>실제 AI 분석</strong>
+          <p>음성은 로컬에서 전사하고 전사문만 AI로 구조화합니다.</p>
+        </div>
+
+        <div class="sidebar-footer">
+          <button class="text-button" id="privacy-button" type="button">
+            개인정보처리방침
+          </button>
+          <button class="account-button" id="account-button" type="button">
+            <span id="account-label">Google로 시작하기</span>
+          </button>
+          <div class="model-badge">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span id="budget-status">실제 AI 추론 · 월 $1 제한</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <section class="workspace-intro" aria-labelledby="page-title">
+          <p class="page-context">MinuteMark V2</p>
+          <h1 id="page-title">회의 음성을 선택하세요</h1>
+          <p id="page-description">
+            공개 샘플로 결과를 확인하거나 Google로 시작해 내 회의를 분석하고
+            저장하세요. 결과의 근거 발화로 바로 이동할 수 있습니다.
           </p>
-        </div>
-        <dl class="proof-list" aria-label="제품 처리 방식">
-          <div>
-            <dt>01</dt>
-            <dd>음성은 로컬에서 전사</dd>
-          </div>
-          <div>
-            <dt>02</dt>
-            <dd>전사문만 AI로 구조화</dd>
-          </div>
-          <div>
-            <dt>03</dt>
-            <dd>근거 구간을 서버가 검증</dd>
-          </div>
-        </dl>
-      </section>
+        </section>
 
-      <section class="input-panel" aria-labelledby="input-title">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">새 분석</p>
-            <h2 id="input-title">회의 음성을 선택하세요</h2>
+        <section id="input-panel" class="input-panel" aria-labelledby="input-title">
+          <div class="section-heading">
+            <div>
+              <h2 id="input-title">새 회의 분석</h2>
+              <p id="input-description">Google 계정에 최대 5개 저장 · 파일당 20MB · 2분</p>
+            </div>
           </div>
-          <p>WAV, MP3, M4A, OGG, FLAC, WEBM · 최대 20MB · 2분</p>
-        </div>
 
-        <div class="input-grid">
-          <div
-            class="drop-zone"
-            id="drop-zone"
-            aria-describedby="drop-help"
-          >
-            <input
-              id="audio-file"
-              type="file"
-              accept=".wav,.mp3,.m4a,.ogg,.flac,.webm,audio/*"
-              hidden
-            />
-            <span class="upload-icon" aria-hidden="true">↑</span>
-            <strong id="drop-label">파일을 끌어놓거나 선택</strong>
-            <span id="drop-help">내 파일은 분석 후 서버에 저장하지 않습니다.</span>
-            <button class="button button-primary" id="choose-file" type="button">
-              오디오 선택
+          <div class="input-grid">
+            <div class="upload-column">
+                <label class="field-label" for="meeting-title">회의 제목</label>
+                <input
+                  id="meeting-title"
+                  class="text-field"
+                  type="text"
+                  maxlength="80"
+                  autocomplete="off"
+                  placeholder="예: 8월 제품 회의"
+                />
+                <div
+                  class="drop-zone"
+                  id="drop-zone"
+                  aria-describedby="drop-help"
+                >
+                  <input
+                    id="audio-file"
+                    type="file"
+                    accept=".wav,.mp3,.m4a,.ogg,.flac,.webm,audio/*"
+                    hidden
+                  />
+                  <span class="input-label">내 파일</span>
+                  <strong id="drop-label">파일을 끌어놓거나 선택</strong>
+                  <span id="drop-help">분석 완료 시 원본 오디오와 전사·결과를 내 회의 기록에 저장합니다.</span>
+                  <button class="button button-secondary" id="choose-file" type="button">
+                    오디오 선택
+                  </button>
+                  <button
+                    class="button button-primary"
+                    id="signin-upload-button"
+                    type="button"
+                  >
+                    Google로 시작하기
+                  </button>
+                </div>
+                <label class="notice-check" for="participant-notice">
+                  <input id="participant-notice" type="checkbox" />
+                  <span>회의 참여자에게 녹음·분석과 전사문의 외부 AI 전송 사실을 알렸습니다.</span>
+                </label>
+                <p class="field-help">
+                  이 확인은 필요한 동의를 대신하지 않습니다. 원본 음성은 A6API에 보내지 않습니다.
+                </p>
+                <button
+                  class="button button-primary analyze-save-button"
+                  id="analyze-save-button"
+                  type="button"
+                  disabled
+                >
+                  분석하고 저장
+                </button>
+            </div>
+
+            <div class="sample-column">
+              <div class="sample-heading">
+                <div>
+                  <span class="input-label">공개 샘플</span>
+                  <h3>바로 분석해 보기</h3>
+                </div>
+                <span>자연스러운 한국어 발화</span>
+              </div>
+              <div id="sample-list" class="sample-list" aria-live="polite">
+                <div class="sample-skeleton"></div>
+                <div class="sample-skeleton"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="meetings-panel" class="meetings-panel" aria-labelledby="meetings-title" hidden>
+          <div class="section-heading section-heading-row">
+            <div>
+              <p class="page-context">내 회의</p>
+              <h2 id="meetings-title">회의 기록</h2>
+              <p>분석이 끝난 회의만 최신순으로 표시합니다.</p>
+            </div>
+            <button class="button button-primary" id="meetings-new-button" type="button">
+              새 회의
             </button>
           </div>
-
-          <div class="sample-column">
-            <div class="sample-heading">
-              <h3>바로 볼 수 있는 공개 샘플</h3>
-              <span>자연스러운 한국어 발화</span>
-            </div>
-            <div id="sample-list" class="sample-list" aria-live="polite">
-              <div class="sample-skeleton"></div>
-              <div class="sample-skeleton"></div>
-            </div>
+          <div id="meeting-list-page" class="meeting-list-page" aria-live="polite">
+            <p>회의 목록을 불러오는 중…</p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section
-        id="status-panel"
-        class="status-panel"
-        aria-live="polite"
-        hidden
-      >
-        <div class="spinner" aria-hidden="true"></div>
-        <div>
-          <strong id="status-title">AI가 회의를 분석하고 있습니다</strong>
-          <p id="status-copy">
-            로컬 전사 후 결정과 할 일을 구조화합니다. 약 20–40초 걸립니다.
-          </p>
-        </div>
-        <span id="elapsed-time">00:00</span>
-      </section>
-
-      <section id="error-panel" class="error-panel" role="alert" hidden>
-        <div>
-          <strong>분석을 완료하지 못했습니다</strong>
-          <p id="error-message"></p>
-        </div>
-        <button class="button button-secondary" id="retry-button" type="button">
-          다시 시도
-        </button>
-      </section>
-
-      <section id="result-panel" class="result-panel" hidden>
-        <div class="result-header">
+        <section
+          id="status-panel"
+          class="status-panel"
+          aria-live="polite"
+          hidden
+        >
+          <div class="spinner" aria-hidden="true"></div>
           <div>
-            <p class="section-kicker">분석 완료</p>
-            <h2 id="result-title">회의 결과</h2>
-            <p id="source-attribution" class="source-attribution"></p>
+            <strong id="status-title">AI가 회의를 분석하고 있습니다</strong>
+            <p id="status-copy">
+              Whisper 전사 후 결정과 할 일을 구조화합니다. 약 20–70초 걸립니다.
+            </p>
           </div>
-          <div id="result-metrics" class="result-metrics"></div>
-        </div>
+          <span id="elapsed-time">00:00</span>
+        </section>
 
-        <audio id="audio-player" controls preload="metadata"></audio>
+        <section id="error-panel" class="error-panel" role="alert" hidden>
+          <div>
+            <strong>분석을 완료하지 못했습니다</strong>
+            <p id="error-message"></p>
+          </div>
+          <button class="button button-secondary" id="retry-button" type="button">
+            다시 시도
+          </button>
+        </section>
 
-        <div class="result-layout">
-          <article class="transcript-panel">
-            <div class="panel-heading">
-              <div>
-                <p class="section-kicker">TRANSCRIPT</p>
-                <h3>타임스탬프 전사</h3>
-              </div>
-              <span id="segment-count"></span>
+        <section id="result-panel" class="result-panel" aria-labelledby="result-title" hidden>
+          <div class="result-topline">
+            <a id="back-to-input" class="route-link" href="/meetings/new">새 회의로 돌아가기</a>
+            <div class="result-actions">
+              <span id="saved-status"></span>
+              <span id="grounding-status"></span>
+              <button class="danger-link" id="delete-meeting-button" type="button" hidden>
+                회의 삭제
+              </button>
             </div>
-            <div id="transcript-list" class="transcript-list"></div>
-          </article>
+          </div>
 
-          <aside class="insights-panel">
-            <section aria-labelledby="decisions-title">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-kicker">DECISIONS</p>
-                  <h3 id="decisions-title">결정</h3>
-                </div>
-                <span id="decision-count" class="count-badge"></span>
-              </div>
-              <div id="decision-list" class="insight-list"></div>
-            </section>
+          <header class="result-header">
+            <div class="result-identity">
+              <h2 id="result-title">회의 결과</h2>
+              <p id="source-attribution" class="source-attribution"></p>
+            </div>
+            <div id="result-metrics" class="result-metrics" aria-label="분석 처리 정보"></div>
+          </header>
 
-            <section aria-labelledby="actions-title">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-kicker">ACTION ITEMS</p>
-                  <h3 id="actions-title">할 일</h3>
-                </div>
-                <span id="action-count" class="count-badge"></span>
-              </div>
-              <div id="action-list" class="insight-list"></div>
-            </section>
+          <div class="audio-shell">
+            <span class="audio-label">회의 오디오</span>
+            <audio id="audio-player" controls preload="metadata"></audio>
+          </div>
 
-            <section class="verification" aria-labelledby="verification-title">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-kicker">GROUNDING</p>
-                  <h3 id="verification-title">근거 검증</h3>
-                </div>
-                <span id="grounding-status"></span>
+          <div class="result-layout">
+            <div class="insights-panel">
+              <div class="result-section-heading">
+                <h3>회의 결과</h3>
+                <p>확정된 결정과 앞으로 할 일을 근거와 함께 정리했습니다.</p>
               </div>
-              <p id="model-detail"></p>
-            </section>
-          </aside>
+
+              <section class="insight-section" aria-labelledby="decisions-title">
+                <div class="panel-heading">
+                  <h4 id="decisions-title">결정</h4>
+                  <span id="decision-count" class="count-badge"></span>
+                </div>
+                <div id="decision-list" class="insight-list"></div>
+              </section>
+
+              <section class="insight-section" aria-labelledby="actions-title">
+                <div class="panel-heading">
+                  <h4 id="actions-title">할 일</h4>
+                  <span id="action-count" class="count-badge"></span>
+                </div>
+                <div id="action-list" class="insight-list"></div>
+              </section>
+
+              <section class="verification" aria-labelledby="verification-title">
+                <h4 id="verification-title">분석 모델</h4>
+                <p id="model-detail"></p>
+              </section>
+            </div>
+
+            <article class="transcript-panel">
+              <div class="transcript-heading">
+                <div>
+                  <h3>전체 대화</h3>
+                  <p>근거 듣기를 누르면 해당 발화가 강조됩니다.</p>
+                </div>
+                <span id="segment-count"></span>
+              </div>
+              <div id="transcript-list" class="transcript-list"></div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="mobile-menu-dialog" class="mobile-menu-dialog">
+      <div class="mobile-menu-card">
+        <div class="mobile-menu-heading">
+          <strong>메뉴</strong>
+          <button class="modal-close" id="mobile-menu-close" type="button" aria-label="메뉴 닫기">×</button>
         </div>
-      </section>
-    </main>
+        <nav aria-label="모바일 주요 화면">
+          <a class="route-link member-only" href="/meetings">회의 기록</a>
+          <a class="route-link" href="/samples">공개 샘플</a>
+          <a class="route-link member-only" href="/account">계정</a>
+          <a class="route-link" href="/privacy">개인정보처리방침</a>
+          <a href="https://github.com/hangokudao/minutemark" target="_blank" rel="noreferrer">GitHub 저장소</a>
+          <button class="mobile-signout member-only" id="mobile-signout-button" type="button">로그아웃</button>
+        </nav>
+      </div>
+    </dialog>
 
-    <footer>
-      <p>Docker-only portfolio MVP · 실제 음성·실제 추론·토큰 비용 기록</p>
-    </footer>
+    <dialog id="auth-dialog" class="modal">
+      <form method="dialog" class="modal-card">
+        <button class="modal-close" id="auth-close" value="cancel" aria-label="닫기">×</button>
+        <p class="page-context">회원가입 · 로그인</p>
+        <h2>Google 계정으로 시작하세요</h2>
+        <p>
+          첫 로그인은 회원가입으로 처리됩니다. Google에서 확인된 이메일과
+          Firebase UID만 인증에 사용합니다.
+        </p>
+        <button class="button button-primary google-button" id="google-signin" type="button">
+          Google로 계속하기
+        </button>
+        <p class="modal-note">
+          시작하기 전에 <button class="inline-button" id="auth-privacy-button" type="button">개인정보처리방침</button>에서 처리 내용을 확인할 수 있습니다.
+        </p>
+        <p id="auth-error" class="dialog-error" role="alert"></p>
+      </form>
+    </dialog>
+
+    <dialog id="account-dialog" class="modal">
+      <form method="dialog" class="modal-card">
+        <button class="modal-close" id="account-close" value="cancel" aria-label="닫기">×</button>
+        <p class="page-context">계정</p>
+        <h2>내 MinuteMark</h2>
+        <p id="account-email" class="account-email"></p>
+        <button class="button button-secondary" id="signout-button" type="button">로그아웃</button>
+        <button class="inline-button account-privacy" id="account-privacy-button" type="button">개인정보처리방침 보기</button>
+        <div class="danger-zone">
+          <h3>계정 탈퇴</h3>
+          <p>저장한 회의와 원본 오디오를 먼저 삭제한 뒤 계정을 삭제합니다. 되돌릴 수 없습니다.</p>
+          <label class="field-label" for="delete-account-confirm">계속하려면 ‘탈퇴’를 입력하세요</label>
+          <input
+            id="delete-account-confirm"
+            class="text-field"
+            type="text"
+            autocomplete="off"
+            placeholder="탈퇴"
+          />
+          <button class="button button-danger" id="delete-account-button" type="button" disabled>회의와 계정 모두 삭제</button>
+        </div>
+        <p id="account-error" class="dialog-error" role="alert"></p>
+      </form>
+    </dialog>
+
+    <dialog id="delete-meeting-dialog" class="modal confirm-modal">
+      <div class="modal-card">
+        <p class="page-context">회의 삭제</p>
+        <h2>이 회의를 삭제할까요?</h2>
+        <p>원본 오디오와 분석 결과를 함께 삭제합니다. 이 작업은 되돌릴 수 없습니다.</p>
+        <div class="confirm-actions">
+          <button class="button button-secondary" id="cancel-delete-meeting" type="button">취소</button>
+          <button class="button button-danger" id="confirm-delete-meeting" type="button">회의 삭제</button>
+        </div>
+        <p id="delete-meeting-error" class="dialog-error" role="alert"></p>
+      </div>
+    </dialog>
+
+    <dialog id="privacy-dialog" class="modal privacy-modal">
+      <article class="modal-card privacy-card">
+        <button class="modal-close" id="privacy-close" type="button" aria-label="닫기">×</button>
+        <p class="page-context">2026년 8월 2일 시행</p>
+        <h2>개인정보처리방침</h2>
+        <p>
+          MinuteMark 포트폴리오 운영자는 회의 분석·저장 기능 제공을 위해 아래와 같이 개인정보를 처리합니다.
+          문의는 <a href="mailto:myhanbro@gmail.com">myhanbro@gmail.com</a>으로 받을 수 있습니다.
+        </p>
+        <section>
+          <h3>처리하는 정보와 목적</h3>
+          <ul>
+            <li>Google 로그인: Firebase UID, 이메일, 로그인·가입 시각 — 사용자 인증과 회의 소유권 확인</li>
+            <li>회의 분석: 사용자가 올린 음성, 전사문, 회의 제목, 결정·할 일 — 분석 결과 제공과 재열람</li>
+            <li>기술 정보: 오류 시각과 요청 상태 — 장애 확인. ID token, 이메일, 전사문, signed URL은 앱 로그에 남기지 않음</li>
+          </ul>
+        </section>
+        <section>
+          <h3>처리 흐름과 보관</h3>
+          <p>
+            음성은 Google Cloud 서울 리전의 비공개 Storage에, 결과는 Firestore 서울 리전에 저장됩니다.
+            서버의 faster-whisper가 음성을 전사하며 원본 음성은 A6API에 보내지 않습니다.
+            전사문과 구간 ID·시각만 A6API의 GPT-5.6 Luna 모델에 보내 결정과 할 일을 구조화합니다.
+          </p>
+          <p>
+            회원이 회의를 삭제하거나 계정을 탈퇴할 때까지 보관합니다. 회의 삭제 시 원본 오디오와 결과를 즉시 삭제하며,
+            이 전용 버킷의 soft delete와 객체 버전 관리는 사용하지 않습니다.
+          </p>
+          <p>
+            Firebase SDK는 로그인 상태를 브라우저의 로컬 저장소에 유지합니다. 로그아웃하거나 계정을 탈퇴하면
+            앱의 로그인 상태가 해제되며, 브라우저 설정에서 사이트 데이터를 직접 지울 수도 있습니다.
+          </p>
+        </section>
+        <section>
+          <h3>외부 서비스와 국외 처리</h3>
+          <ul>
+            <li>Google Firebase Authentication — 로그인과 계정 식별</li>
+            <li>Google Cloud Firestore·Storage — 서울 리전 결과·오디오 보관</li>
+            <li>A6API를 통한 GPT-5.6 Luna — 전사문에서 결정·할 일 추출. 제공자의 보관·학습·처리 위치는 확인되는 범위 밖에서 단정하지 않음</li>
+          </ul>
+        </section>
+        <section>
+          <h3>삭제와 이용자 권리</h3>
+          <p>
+            회의 상세의 ‘회의 삭제’ 또는 계정 화면의 ‘회의와 계정 모두 삭제’로 직접 삭제할 수 있습니다.
+            계정 탈퇴 전에는 Google 재인증을 요구합니다. 처리 정보의 열람·삭제 문의도 위 이메일로 요청할 수 있습니다.
+          </p>
+        </section>
+      </article>
+    </dialog>
   </body>
 </html>
