@@ -952,6 +952,7 @@ async function initialize() {
       await renderRoute();
       return;
     }
+    if (location.pathname === "/auth") await renderRoute(currentPath);
     const [appModule, authModule] = await Promise.all([
       import("https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js"),
       import("/static/vendor/firebase-auth-12.16.0-patched.js"),
@@ -969,6 +970,7 @@ async function initialize() {
     auth.languageCode = "ko";
     provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
+    elements.googleSignin.disabled = false;
     onAuthStateChanged(auth, async (user) => {
       setAuthState(user);
       authReady = true;

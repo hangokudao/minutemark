@@ -343,6 +343,24 @@ body.is-member .member-only {
   padding: 42px 52px 72px;
 }
 
+.portfolio-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 11px 14px;
+  border: 1px solid #dfd7c4;
+  border-radius: var(--radius-sm);
+  background: #fffaf0;
+  color: #695a34;
+  font-size: 0.78rem;
+}
+
+.portfolio-notice strong {
+  flex: 0 0 auto;
+  color: #4d421f;
+}
+
 .workspace-intro {
   max-width: 760px;
   padding: 10px 0 36px;
@@ -1231,6 +1249,15 @@ body[data-route="/meetings/new"] .sample-column {
   position: static;
 }
 
+.portfolio-dialog-note {
+  margin: 0 0 12px;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  background: #fffaf0;
+  color: #695a34 !important;
+  font-size: 0.76rem !important;
+}
+
 .mobile-menu-dialog nav {
   display: grid;
 }
@@ -1518,6 +1545,12 @@ body[data-route="/meetings/new"] .sample-column {
 
   .workspace {
     padding: 30px 18px 52px;
+  }
+
+  .portfolio-notice {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .workspace-intro {

@@ -73,6 +73,11 @@
       </aside>
 
       <main class="workspace">
+        <aside class="portfolio-notice" aria-label="포트폴리오 이용 안내">
+          <strong>포트폴리오 데모</strong>
+          <span>정식 서비스가 아닙니다. 민감하거나 실제 업무용인 파일은 업로드하지 마세요.</span>
+        </aside>
+
         <section class="workspace-intro" aria-labelledby="page-title">
           <p class="page-context">MinuteMark V2</p>
           <h1 id="page-title">회의 음성을 선택하세요</h1>
@@ -276,6 +281,9 @@
           <strong>메뉴</strong>
           <button class="modal-close" id="mobile-menu-close" type="button" aria-label="메뉴 닫기">×</button>
         </div>
+        <p class="portfolio-dialog-note" id="mobile-portfolio-note">
+          포트폴리오 데모 · 정식 서비스가 아닙니다. 민감하거나 실제 업무용인 파일은 업로드하지 마세요.
+        </p>
         <nav aria-label="모바일 주요 화면">
           <a class="route-link member-only" href="/meetings/new">새 회의</a>
           <a class="route-link member-only" href="/meetings">회의 기록</a>
@@ -293,11 +301,14 @@
         <button class="modal-close" id="auth-close" value="cancel" aria-label="닫기">×</button>
         <p class="page-context">회원가입 · 로그인</p>
         <h2>Google 계정으로 시작하세요</h2>
+        <p class="portfolio-dialog-note" id="auth-portfolio-note">
+          포트폴리오 데모이며 정식 서비스가 아닙니다. 민감하거나 실제 업무용인 파일은 업로드하지 마세요.
+        </p>
         <p>
           첫 로그인은 회원가입으로 처리됩니다. Google에서 확인된 이메일과
           Firebase UID만 인증에 사용합니다.
         </p>
-        <button class="button button-primary google-button" id="google-signin" type="button">
+        <button class="button button-primary google-button" id="google-signin" type="button" disabled>
           Google로 계속하기
         </button>
         <p class="modal-note">
@@ -351,7 +362,8 @@
         <p class="page-context">2026년 8월 2일 시행</p>
         <h2>개인정보처리방침</h2>
         <p>
-          MinuteMark 포트폴리오 운영자는 회의 분석·저장 기능 제공을 위해 아래와 같이 개인정보를 처리합니다.
+          MinuteMark는 포트폴리오 데모이며 정식 서비스가 아닙니다. 민감하거나 실제 업무용인 파일은 업로드하지 마세요.
+          포트폴리오 운영자는 회의 분석·저장 기능 제공을 위해 아래와 같이 개인정보를 처리합니다.
           개인정보 보호 담당은 ‘MinuteMark 개인정보 보호 담당’이며,
           문의는 <a href="mailto:hangokudao@gmail.com">hangokudao@gmail.com</a>으로 받을 수 있습니다.
         </p>
