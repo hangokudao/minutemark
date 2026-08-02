@@ -327,7 +327,7 @@ class AuthenticatedUploadRouteTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(meeting["title"], "saved")
         store.count.assert_not_called()
 
-    def test_repeated_meeting_delete_is_idempotent(self):
+    def test_missing_or_other_users_meeting_delete_returns_404(self):
         request = Mock()
         store = Mock()
         store.delete.return_value = False
@@ -339,7 +339,10 @@ class AuthenticatedUploadRouteTest(unittest.IsolatedAsyncioTestCase):
             ),
             patch("app.get_meeting_store", return_value=store),
         ):
-            self.assertIsNone(app.delete_meeting("missing", request))
+            with self.assertRaises(HTTPException) as raised:
+                app.delete_meeting("missing", request)
+
+        self.assertEqual(raised.exception.status_code, 404)
 
 
 if __name__ == "__main__":

@@ -719,7 +719,8 @@ async def create_meeting(request: Request) -> dict:
 def delete_meeting(meeting_id: str, request: Request) -> None:
     user = authenticated_user(request)
     try:
-        get_meeting_store().delete(user.uid, meeting_id)
+        if not get_meeting_store().delete(user.uid, meeting_id):
+            raise HTTPException(status_code=404, detail="회의를 찾을 수 없습니다.")
     except HTTPException:
         raise
     except Exception as error:
