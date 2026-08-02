@@ -1,7 +1,7 @@
 # MinuteMark V2.1 버전업 실행 기록
 
-> 기준일: 2026-08-02
-> 후보 커밋: `6756663d781bfa77155293ef4fe1a852e93f1f5a`
+> 기준일: 2026-08-03
+> 작업 브랜치: `codex/redesign-v1` · 최종 후보 SHA는 배포 `/api/health`에서 확인한다.
 > 단계: `RELEASE_CANDIDATE · IN_PROGRESS`
 > 이 문서가 V2.1의 활성 범위·검증·출시 판단 기록이다.
 
@@ -14,13 +14,17 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 - 첫 Google 로그인은 회원가입, 이후 로그인은 기존 계정 로그인으로 처리한다.
 - 자체 아이디·비밀번호, 비밀번호 재설정, 자체 세션 저장소는 만들지 않는다.
 - 문의처는 `MinuteMark 개인정보 보호 담당 / hangokudao@gmail.com`으로 표시한다.
-- `hangokudao@gmail.com`과 `myhanbro@gmail.com`은 소유자가 직접 로그인하는
-  실제 QA 계정으로 사용한다. 에이전트는 비밀번호·쿠키·token을 받거나 기록하지
-  않는다.
+- 실제 Google 테스트 계정 A와 B는 소유자가 직접 로그인한다. 에이전트는 계정
+  이메일·비밀번호·쿠키·token을 받거나 공개 QA 기록에 남기지 않는다.
 - 테스트에는 민감하지 않은 데모 오디오만 사용하며 계정 탈퇴는 Google 계정이
   아니라 MinuteMark의 Firebase 사용자와 저장 데이터만 삭제한다.
 - 공개 진입, 업로드, 로그인, 개인정보 화면에 정식 서비스가 아닌 포트폴리오
   데모임을 표시하고 민감하거나 실제 업무용인 파일을 올리지 말라고 안내한다.
+- 업로드와 개인정보 화면에는 아래 확정 문구를 표시한다.
+
+> 포트폴리오 데모입니다. 실제 업무·기밀·민감정보가 포함된 파일을 업로드하지
+> 마세요. 업로더는 녹음·분석에 필요한 참여자 고지와 권한을 확보해야 합니다.
+> 전사문은 결과 생성을 위해 A6API로 전송됩니다.
 
 결정 질문은 하나다.
 
@@ -51,7 +55,7 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 
 | 위험 | 최소 증거 | 통과 기준 | 현재 상태 |
 | --- | --- | --- | --- |
-| 독립 빌드 | Docker 이미지와 전체 회귀 | 동일 소스 이미지 빌드·테스트 성공 | `PASS` · image `2546706…`, 48/48 |
+| 독립 빌드 | Docker 이미지와 전체 회귀 | 동일 소스 이미지 빌드·테스트 성공 | `PASS` · image `8f6c4696…`, 48/48 |
 | 인증 경계 | 비인증·잘못된 provider·폐기 token 테스트 | 서버가 안전한 401로 거부 | 기존 자동 증거 PASS |
 | 실제 Google 로그인 | 배포 후보에서 Google 계정 선택·로그인 | 계정 선택 뒤 회원 화면 진입 | `BLOCKED` · 승인 도메인은 추가됐으나 Chrome에서 계정 선택 창이 열리지 않음 |
 | 사용자 소유권 | 다른 실제 Google 사용자 직접 요청 | 목록·상세·오디오가 404 | `BLOCKED` · 배포 후보에서 검증 예정 |
@@ -59,8 +63,8 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 | 삭제 | 실제 회의·계정 삭제 뒤 저장소 조회 | 문서·객체·Auth 사용자 잔여 0 | `BLOCKED` · 배포 후보에서 검증 예정 |
 | 공개 UI | Windows Chrome 1440×900·390×844 | privacy·샘플·메뉴에 막힘·넘침 없음 | `BLOCKED` · 샘플·auth·메뉴는 PASS, privacy 하단 시각 확인 timeout |
 | 회원가입 UI | 회원 기능을 켠 독립 후보의 `/auth` | 가입 안내와 Google 버튼 표시 | `PASS` · 실제 0% 후보에서 표시·새로고침 확인 |
-| 개인정보 고지 | 공개 privacy 화면과 실제 데이터 흐름 | 문의처·수집·저장·외부 AI 전송 설명 일치 | `PASS` · 공개 화면 직접 확인 |
-| A6 외부 처리 | 포트폴리오 한계·전사문 전송·미확인 조건 고지 | 민감정보 업로드 금지와 확인 범위를 모든 사용자가 알 수 있음 | `PASS` · samples·privacy·auth 브라우저 확인 |
+| 개인정보 고지 | 공개 privacy 화면과 실제 데이터 흐름 | 문의처·수집·저장·외부 AI 전송 설명 일치 | `BLOCKED` · 확정 문구 자동 계약 PASS, 새 후보 브라우저 확인 예정 |
+| A6 외부 처리 | 포트폴리오 한계·전사문 전송·미확인 조건 고지 | 민감정보 업로드 금지와 확인 범위를 모든 사용자가 알 수 있음 | `BLOCKED` · 확정 문구 자동 계약 PASS, 새 후보 브라우저 확인 예정 |
 | 배포·복구 | 후보 commit·runtime·기존 V1 | 후보 검증 성공, V1 유지·rollback 가능 | `BLOCKED` · 0% 후보 정상, V1 100% 유지, 회원 QA 미완료 |
 
 필수 행에 `FAIL` 또는 `BLOCKED`가 있으면 V2.1을 공개 배포하지 않는다. 기존 V1
@@ -68,17 +72,17 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 
 ## 5. 실행 순서
 
-1. 문의처, 포트폴리오 한계 고지, 소유자 직접 로그인 QA 규칙을 코드·문서·테스트에 반영한다.
-2. Spec 리뷰와 Standards/보안 리뷰를 각각 한 번 실행하고 차단 항목을 수정한다.
-3. 수정된 최종 소스로 Docker 빌드, 전체 회귀, `pip check`, `pip-audit`, 문법과
-   diff 검사를 실행한다.
-4. 검증한 변경을 `codex/*` 브랜치에 push하고 PR로 main에 반영한다.
-5. main의 Cloud Build가 만든 트래픽 0% Cloud Run 후보를 확인한다. 기존 V1 트래픽은
-   유지한다.
-6. `wsl-local-chrome-bridge`에서 계정 소유자가 두 Google 계정의 로그인을 직접
-   완료하면 분석·저장·격리·삭제를 수행하고 Firestore·Storage·Firebase Auth 상태를
-   함께 확인한다.
-7. 필수 게이트가 통과한 동일 커밋의 후보에만 트래픽을 전환한다.
+1. 확정 문구와 버전업 규칙을 코드·문서·테스트에 반영한다.
+2. 남은 로컬 변경을 하나의 V2.1 범위로 정리하고 공개 QA 계정 이메일은 익명화한다.
+3. 전체 회귀, Docker 빌드, `pip check`, `pip-audit`, 문법·diff·보안 경계를 확인한다.
+4. Spec 리뷰와 Standards/보안 리뷰를 각각 한 번 실행하고 출시 차단 항목을 수정한다.
+5. 검증한 변경을 GitHub 계정 `hangokudao`의 `codex/redesign-v1` 브랜치에 push한다.
+6. Google Cloud 프로젝트 `minutemark-portfolio`의 Cloud Run `minutemark`에 최신
+   커밋을 트래픽 0% 시험 후보로 배포하고 기존 V1 트래픽을 유지한다.
+7. 실제 Google 테스트 계정의 소유자가 로그인을 직접 완료하면 분석·저장·격리·
+   재열람·삭제를 수행하고 Firestore·Storage·Firebase Auth 상태를 함께 확인한다.
+8. 필수 게이트가 모두 PASS인 경우에만 PR을 `main`에 병합하고, 동일 커밋의 공개
+   V2 트래픽을 전환한 뒤 비파괴 스모크를 수행한다.
 
 ## 6. 브라우저 QA 규칙
 
@@ -102,8 +106,8 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 
 ### 자동·HTTP
 
-- Docker: `minutemark-v2-1-rc-final`, image
-  `sha256:254670680c5b63fa4a0156e448e9d3d7cc53c58bd8741551eefe5f68d177fa80`
+- Docker: `minutemark-v2-1-rc-20260803`, image
+  `sha256:8f6c4696237e86a039dda66766bff374988a6e35df074d46cc056948af169955`
 - 기본 실행 사용자: `minutemark`
 - 회귀: 48/48 `PASS`
 - `pip check`: 충돌 0
@@ -115,6 +119,9 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 - 비인증 `GET /api/meetings`: 401, `no-store`
 - CSP, HSTS, COOP `same-origin-allow-popups`, `X-Frame-Options: DENY`,
   `nosniff`, `no-referrer`: 응답 헤더에서 확인
+- WSL Codex 워크트리 상위 폴더 권한 때문에 읽기 전용 `/tests` 마운트는 테스트
+  컨테이너에만 `--user 0`을 사용했다. 제품 이미지의 `Config.User=minutemark`와
+  실제 HTTP 실행은 비루트 기본값으로 별도 확인했다.
 
 ### Windows Chrome 브리지
 
@@ -183,3 +190,47 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
 - 콘솔 error·warn: 0
 - 네트워크 워터폴은 Chrome 점검 API가 제공하지 않아 `BLOCKED`
 - Google 로그인, 계정 전환, 샘플 분석, 업로드, 삭제는 수행하지 않음
+
+## 10. V2.1 업데이트 내역
+
+### 추가
+
+- Firebase Google 회원가입·로그인·로그아웃과 최근 재인증 기반 계정 탈퇴
+- 사용자별 회의 분석·저장·목록·상세·오디오 재생·삭제
+- `/meetings`, `/meetings/new`, `/meetings/{id}`, `/account`, `/privacy` 라우팅
+- 모바일 회원 메뉴, 회의 제목, 참여자 확인, 작성 중 이탈 경고
+
+### 변경
+
+- A6API 분석 모델을 `gpt-5.6-luna`로 전환
+- 포트폴리오 안내를 실제 업무·기밀·민감정보 금지, 참여자 권한, 전사문 A6API
+  전송을 함께 알리는 확정 문구로 통일
+- 실제 QA 계정 이메일을 공개 문서에서 `테스트 계정 A/B`로 익명화
+
+### 버그 수정
+
+- Firebase 모듈 준비 전에 `/auth` 화면이 사라지던 초기 로딩 문제 수정
+- 모바일에서 새 회의·목록에 접근하지 못하거나 데스크톱 최근 목록이 노출되던 문제 수정
+- 뒤로가기·앞으로가기·새로고침과 작성 중 이탈 경고가 충돌하던 문제 수정
+- 실패한 저장의 Storage 객체와 계정 탈퇴 중 고아 객체를 정리하도록 보완
+
+### 보안
+
+- Firebase UID 기반 소유권 확인, 다른 사용자 리소스 404 처리
+- Firestore 브라우저 직접 접근 차단, 비공개 Storage와 짧은 signed URL 사용
+- 인증 전 요청 body 거부, 비공개 API `no-store`, CSP·HSTS·프레임·MIME 보호
+- A6 secret을 전용 Cloud Run 런타임 계정과 단일 Secret Manager 리소스로 제한
+
+## 11. PR 리뷰와 출시 체크
+
+| 항목 | 결과 | 증거 |
+| --- | --- | --- |
+| 확정 문구·버전업 규칙 | `PASS` | 업로드·privacy 계약 테스트와 `AGENTS.md`·README 연결 |
+| 전체 자동 테스트·Docker 빌드 | `PASS` | 48/48, image `8f6c4696…`, 비루트 `minutemark` |
+| 의존성·보안 점검 | `PASS` | `pip check` 0, `pip-audit` 0, 404·401·`no-store`·보안 헤더 |
+| Spec 리뷰 | 대기 | `main...HEAD` 리뷰 결과와 수정 내역 |
+| Standards/보안 리뷰 | 대기 | `main...HEAD` 리뷰 결과와 수정 내역 |
+| GitHub PR | 대기 | PR #5 head SHA와 merge gate |
+| Cloud Run 0% 후보 | 대기 | 리비전·tag URL·`/api/health` commit |
+| 실제 회원 QA | `BLOCKED` | 계정 소유자 로그인 후 저장·격리·삭제 증거 필요 |
+| `main` 병합·공개 V2 | `BLOCKED` | 위 필수 게이트가 모두 PASS일 때만 진행 |
