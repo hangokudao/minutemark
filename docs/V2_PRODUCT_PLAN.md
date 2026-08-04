@@ -4,31 +4,36 @@
 > 기준: 현재 `codex/redesign-v1`의 V1 UI와 기존 FastAPI 분석 계약
 > 결정 질문: 포트폴리오 완성도는 높이되, 실제 운영 가능한 최소 회원 기반 서비스는 어디까지인가?
 
-### 2026-08-02 실행 판정
+### 2026-08-04 실행 판정
 
 요청 범위는 한 번에 구현했다. 단계별 승인을 기다리는 Phase 문서는 이제 작업
-순서가 아니라 검증 체크리스트로 사용한다. 현재 판정은 `IMPLEMENTED / RELEASE
-BLOCKED`다.
+순서가 아니라 검증 체크리스트로 사용한다. 현재 판정은 `IMPLEMENTED /
+RELEASE_CANDIDATE QA PASS / RELEASE PENDING`이다.
 
 | 축 | 증거 | 판정 |
 | --- | --- | --- |
 | 인증·API | Firebase ID token 서명·만료·폐기 확인, 인증 전 multipart body 차단 | 코드·테스트 PASS |
 | 저장·소유권 | UID 하위 Firestore 문서, 비공개 Storage, 객체 generation 고정, 5분 signed URL, 타 사용자 404 | 코드·테스트 PASS |
 | 삭제 | 오디오→문서, 고아 객체 정리, 전체 content→Auth 사용자 순서와 멱등 재시도 | 코드·테스트 PASS |
-| 회귀 | 운영 Docker 이미지에서 분석·회원·보안·라우팅 | V2.1 46/46 PASS |
+| 회귀 | 운영 Docker 이미지에서 분석·회원·보안·라우팅 | V2.1 48/48 PASS |
 | GCP | 프로젝트 소유 Google Cloud 계정, 서울 Firestore·Storage, deny-all Rules, PAP·UBLA, soft delete 0, 최소권한 runtime SA | PASS |
 | A6 secret·라우터 | 기존 secret 버전 `1`, 실제 V2 샘플 `gpt-5.6-luna`, grounding true | HTTP 200 PASS |
-| signed audio URL | runtime SA self `signBlob`와 객체 권한 확인 | 운영 리비전 실제 발급 미검증 |
-| Windows Chrome | 브리지는 timeout, 같은 Chrome CDP fallback에서 Google 브라우저 OAuth·로그아웃 | 브라우저 OAuth PASS · 백엔드 통합 로컬 FAIL |
-| 인증 후 사용자 흐름 | 제목·실제 WAV·고지·draft 경고·history 확인, 목록은 로컬 ADC `firebaseauth.users.get` 부재로 401 | 부분 PASS · 저장 흐름 미검증 |
-| 공개 화면 1440×900·390×844 | 격리 Chrome fallback, privacy·메뉴·overflow·요청 실패 확인 | 게스트 화면 PASS |
-| 모바일 회원 흐름 | 390×844 로그인 상태에서 새 회의·목록·계정·로그아웃 메뉴 | 메뉴 PASS · 상세·삭제 미검증 |
-| 배포 | 현재 Cloud Run은 기존 compute SA의 V1 리비전, V2 배포 미승인 | 미수행 |
+| signed audio URL | runtime SA self `signBlob`와 실제 저장 상세 오디오 발급 | 운영 후보 실제 발급 PASS |
+| Windows Chrome | 최신 0% 후보에서 공개 화면과 계정 A·B 실제 Google 로그인 확인 | 공개 화면·실제 로그인·새로고침 PASS |
+| 인증 후 사용자 흐름 | 실제 분석·저장·목록·상세·새로고침·로그아웃·회의 삭제 | 저장·재열람·교차 사용자 차단·회의·계정 삭제 PASS |
+| 공개 화면 1440×900·390×844 | 배포 후보의 privacy·메뉴·라우팅·overflow 확인 | 게스트 화면 PASS |
+| 모바일 회원 흐름 | 390×844에서 실제 저장 상세·오디오·메뉴·회의 삭제 | PASS · overflow 없음, 저장소 잔여 0 |
+| 배포 | V2 `minutemark-00010-wix`는 전용 runtime SA로 트래픽 0%, V1 `minutemark-00007-w6c`는 100% | 후보 PASS · 공개 전환 BLOCKED |
 
-구현 완료를 출시 승인으로 해석하지 않는다. 실제 Google 로그인 뒤 분석·저장·
-재진입·회의 삭제·계정 탈퇴 증거, 모바일 브라우저 증거, A6API 데이터 처리 조건
-확인과 runtime SA의 실제 signed URL 발급 증거 전에는 회원 업로드를 공개하지
-않는다. 로컬 검증을 위해 사용자 계정에 `signBlob` 권한을 임의 추가하지 않았다.
+구현 완료를 출시 승인으로 해석하지 않는다. 실제 Google 로그인·분석·저장·재진입·
+회의 삭제와 모바일 회원 흐름, runtime SA의 signed URL 발급, 다른 사용자 접근
+차단과 실제 계정 탈퇴는 배포 후보에서 통과했다. 최종 기록 commit과 PR 병합 뒤
+동일 commit을 배포하기 전에는 V2 트래픽을 공개하지 않는다. 로컬 검증을 위해 사용자
+계정에 `signBlob` 권한을 임의 추가하지 않았다.
+
+교차 사용자 검증에 사용한 계정 A의 마지막 QA 회의도 삭제했으며, 계정 A의
+Firestore 회의와 Storage 사용자 경로 객체가 모두 0건인 것을 확인했다. 계정 A는
+로그인 회귀를 위해 유지했다.
 
 ## 1. 최종 결정
 
@@ -587,7 +592,7 @@ Cloud Storage 새 버킷은 별도 설정이 없으면 soft delete가 기본 7�
 
 승인 기준:
 
-- 분석·회원·보안·라우팅 회귀 46개 통과
+- 분석·회원·보안·라우팅 회귀 48개 통과
 - 서로 다른 테스트 계정 2개로 IDOR 차단 확인
 - 회원 업로드 실제 1회, 새로고침 재진입, 회의 삭제 확인
 - `/api/health` commit과 배포 후보 SHA 일치
@@ -683,11 +688,12 @@ Oracle의 최초 브라우저 답변은 자동 후속 전송 오류 뒤 partial 
 ## 13. 다음 행동과 종료 기준
 
 Phase 0→6 구현과 코드 검증은 한 번에 완료했다. 다음 행동은 새 기능 추가가 아니라
-출시 차단 증거 수집이다. 실제 Google 로그인·로그아웃, 제목·WAV·고지·draft 경고,
-390×844 회원 메뉴는 확인했다. 목록·실제 1회 분석·저장→새로고침 재진입→회의
-삭제→계정 탈퇴는 로컬 개인 자격증명으로 runtime 검증을 대신할 수 없어 미검증이다.
-A6API의 데이터 처리 조건과 개인정보처리자 법적 표시명을 확정하고, 배포된 runtime
-SA로 이 흐름과 signed URL 발급을 확인한 뒤에만 배포 완료 판정을 내린다.
+출시 차단 증거 수집이다. 배포 후보의 공개 화면, 계정 A·B 로그인, 실제 분석·저장→
+새로고침 재진입→모바일 회의 삭제, 다른 사용자 직접 주소 차단과 계정 탈퇴 뒤
+Firestore·Storage·Firebase Auth 부재까지 확인했다. 남은 작업은 QA 기록 commit,
+최종 0% 후보의 commit 일치 확인, PR 병합과 공개 전환 스모크다. A6API의 상세 데이터
+처리 조건은 포트폴리오 경고와 전사문 전송 고지로 현재 한계를 명시하며, 정식 서비스
+전환 전 별도 확인한다.
 
 2026-08-02 release hardening에서 공개 샘플 영속 cache, 서비스 전체 오디오
 512MiB cap, Firestore 750KiB 사전 거부를 구현했다. 저장 음성과 회원 API에는

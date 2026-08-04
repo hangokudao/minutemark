@@ -1,7 +1,7 @@
 # MinuteMark V2.1 버전업 실행 기록
 
-> 기준일: 2026-08-03
-> 작업 브랜치: `codex/redesign-v1` · 최종 후보 SHA는 배포 `/api/health`에서 확인한다.
+> 기준일: 2026-08-04
+> 작업 브랜치: `codex/redesign-v1` · 검증한 코드 후보 commit `48a5fda14b5b68436bc6819d0b98185ab1be9729`
 > 단계: `RELEASE_CANDIDATE · IN_PROGRESS`
 > 이 문서가 V2.1의 활성 범위·검증·출시 판단 기록이다.
 
@@ -30,8 +30,8 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 
 > 포트폴리오 범위에서 실제 Google 사용자 두 명의 저장·격리·삭제 흐름을 검증했는가?
 
-현재 답은 `검증 진행 중`이다. 두 계정의 자격 증명은 소유자만 입력하며, 실제
-저장소 상태까지 확인한 항목만 PASS로 판정한다.
+현재 답은 `PASS`다. 두 계정의 자격 증명은 소유자만 입력했고, 다른 사용자 직접
+주소 차단과 계정 탈퇴 뒤 Firestore·Storage·Firebase Auth 상태까지 확인했다.
 
 ## 2. 핵심 사용자 결과
 
@@ -57,15 +57,15 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 | --- | --- | --- | --- |
 | 독립 빌드 | Docker 이미지와 전체 회귀 | 동일 소스 이미지 빌드·테스트 성공 | `PASS` · image `025ea4c2…`, 48/48 |
 | 인증 경계 | 비인증·잘못된 provider·폐기 token 테스트 | 서버가 안전한 401로 거부 | 기존 자동 증거 PASS |
-| 실제 Google 로그인 | 배포 후보에서 Google 계정 선택·로그인 | 계정 선택 뒤 회원 화면 진입 | `BLOCKED` · 승인 도메인은 추가됐으나 Chrome에서 계정 선택 창이 열리지 않음 |
-| 사용자 소유권 | 다른 실제 Google 사용자 직접 요청 | 목록·상세·오디오가 404 | `BLOCKED` · 배포 후보에서 검증 예정 |
-| 저장·재열람 | 실제 회원 오디오 1회 | Firestore·Storage 저장 후 상세 복원 | `BLOCKED` · 배포 후보에서 검증 예정 |
-| 삭제 | 실제 회의·계정 삭제 뒤 저장소 조회 | 문서·객체·Auth 사용자 잔여 0 | `BLOCKED` · 배포 후보에서 검증 예정 |
-| 공개 UI | Windows Chrome 1440×900·390×844 | privacy·샘플·메뉴에 막힘·넘침 없음 | `BLOCKED` · 샘플·auth·메뉴는 PASS, privacy 하단 시각 확인 timeout |
+| 실제 Google 로그인 | 배포 후보에서 Google 계정 선택·로그인 | 계정 선택 뒤 회원 화면 진입 | `PASS` · 계정 A와 B 모두 `/meetings` 회원 화면 진입 확인 |
+| 사용자 소유권 | 다른 실제 Google 사용자 직접 요청 | 목록·상세·오디오가 404 | `PASS` · 계정 B 목록에 A 회의가 없고 A 직접 주소는 not-found, 제목·결과 비노출 |
+| 저장·재열람 | 실제 회원 오디오 1회 | Firestore·Storage 저장 후 상세 복원 | `PASS` · 실제 분석·저장, 상세·오디오·새로고침·목록과 저장소 확인 |
+| 삭제 | 실제 회의·계정 삭제 뒤 저장소 조회 | 문서·객체·Auth 사용자 잔여 0 | `PASS` · 회의 삭제와 B 계정 탈퇴 뒤 문서·객체 0건, Auth 사용자 부재 확인 |
+| 공개 UI | Windows Chrome 1440×900·390×844 | privacy·샘플·메뉴에 막힘·넘침 없음 | `PASS` · 배포 후보의 공개 화면·라우팅·모바일 메뉴·가로 넘침 확인 |
 | 회원가입 UI | 회원 기능을 켠 독립 후보의 `/auth` | 가입 안내와 Google 버튼 표시 | `PASS` · 실제 0% 후보에서 표시·새로고침 확인 |
-| 개인정보 고지 | 공개 privacy 화면과 실제 데이터 흐름 | 문의처·수집·저장·외부 AI 전송 설명 일치 | `BLOCKED` · 확정 문구 자동 계약 PASS, 새 후보 브라우저 확인 예정 |
-| A6 외부 처리 | 포트폴리오 한계·전사문 전송·미확인 조건 고지 | 민감정보 업로드 금지와 확인 범위를 모든 사용자가 알 수 있음 | `BLOCKED` · 확정 문구 자동 계약 PASS, 새 후보 브라우저 확인 예정 |
-| 배포·복구 | 후보 commit·runtime·기존 V1 | 후보 검증 성공, V1 유지·rollback 가능 | `BLOCKED` · 0% 후보 정상, V1 100% 유지, 회원 QA 미완료 |
+| 개인정보 고지 | 공개 privacy 화면과 실제 데이터 흐름 | 문의처·수집·저장·외부 AI 전송 설명 일치 | `PASS` · 확정 문구 계약 테스트와 배포 후보 화면 확인 |
+| A6 외부 처리 | 포트폴리오 한계·전사문 전송·미확인 조건 고지 | 민감정보 업로드 금지와 확인 범위를 모든 사용자가 알 수 있음 | `PASS` · `/samples`·`/privacy`에서 확정 문구 확인 |
+| 배포·복구 | 후보 commit·runtime·기존 V1 | 후보 검증 성공, V1 유지·rollback 가능 | `BLOCKED` · 0% 후보 QA 통과, 최종 문서 commit·PR 병합·공개 전환 대기 |
 
 필수 행에 `FAIL` 또는 `BLOCKED`가 있으면 V2.1을 공개 배포하지 않는다. 기존 V1
 트래픽은 그대로 유지한다.
@@ -159,17 +159,60 @@ gcloud run services update-traffic minutemark \
 
 ### 실제 Cloud Run 0% 후보
 
-- 리비전: `minutemark-00009-xac`
+- 리비전: `minutemark-00010-wix`
 - 태그 URL: `https://v2-rc---minutemark-2u3l25uhba-du.a.run.app`
 - `/api/health`: 200, commit
-  `6756663d781bfa77155293ef4fe1a852e93f1f5a`
+  `48a5fda14b5b68436bc6819d0b98185ab1be9729`
 - 런타임 계정: `minutemark-runtime@minutemark-portfolio.iam.gserviceaccount.com`
 - 기존 공개 V1 `minutemark-00007-w6c`: 트래픽 100% 유지
-- Firebase Authentication 승인 도메인: 기존 4개를 보존하고 후보 태그 도메인 1개를
-  추가한 뒤 Admin API에서 5개를 다시 읽어 확인
-- Google 로그인 재시험: `/auth`, 1440×900에서 버튼을 한 번 눌렀으나 계정 선택
-  화면이 열리지 않아 `BLOCKED`. 비밀번호·MFA·cookie·token은 입력하거나 기록하지 않음
-- 로그인 전제 조건이 충족되지 않아 업로드·유료 분석·저장·삭제는 수행하지 않음
+- Firebase Authentication 승인 도메인에는 후보 태그 도메인이 등록돼 있다.
+- 첫 로그인 실패의 원인은 Firebase 승인 도메인이 아니라 Firebase 자동 생성 웹 API
+  키의 HTTP referrer 허용 목록에 후보 태그 주소가 없었던 것이었다. 후보 주소
+  `https://v2-rc---minutemark-2u3l25uhba-du.a.run.app/*`만 추가하고 기존 referrer
+  4개와 API 제한은 그대로 보존했다. key·token 값은 바꾸거나 출력하지 않았다.
+- 수정 뒤 Identity Toolkit 프로젝트 설정 요청이 성공했고, Windows Chrome의
+  `/auth`에서 Google이 소유한 계정 선택 화면까지 열리는 것을 확인했다.
+- 브리지 작업: `019fc337-46d9-74d1-b912-3c586916f2ed`
+- 공개 화면: 1440×900과 390×844에서 `/samples`, `/privacy`, `/auth`를 확인했다.
+  확정 경고·공개 메뉴·라우팅·가로 넘침 없음은 PASS다. 캡처는 브리지 내부 증거만
+  있으며 로컬 스크린샷 경로는 제공되지 않았다.
+- 이후 계정 A와 B의 실제 로그인이 완료돼 저장·재열람·회의 삭제, 교차 사용자
+  접근 차단과 MinuteMark 계정 탈퇴까지 검증했다.
+
+### 실제 회원 저장·삭제·모바일 증거
+
+- 계정 A의 실제 Google 인증이 완료돼 `/meetings` 빈 목록과 새로고침 복원을
+  확인했다. 로그인 뒤 콘솔 error·warn은 0건이었다.
+- 공개 데모 오디오 `ko-01-action.wav`를 제목 `V2 출시 QA`로 한 번 제출했다.
+  약 30초 뒤 실제 상세로 이동했고 결과·오디오가 표시됐다. 같은 상세를 새로고침한
+  뒤 복원되고 `/meetings` 목록에 같은 제목이 표시됐다.
+- 해당 회의 `8208b01c87c34c29b67d4d75016c07fa`는 Firestore 문서 1건과 Storage
+  오디오 객체가 실제로 존재하는 것을 읽어 확인한 뒤 모바일 390×844에서 열었다.
+  제목·결과·오디오·메뉴가 보였고 `scrollWidth=390`, `clientWidth=390`으로 가로
+  넘침이 없었다.
+- 모바일에서 삭제 확인을 한 번 거쳐 회의를 삭제했다. 목록에서 사라지고 이전 상세는
+  `회의를 찾을 수 없습니다.`를 표시했다. 이어 Firestore 문서 0건과 Storage 객체
+  0건을 직접 읽어 확인했다.
+- 로그아웃 뒤 실제 저장 회의 주소가 `/auth?next=…`로 보호되고 회의 제목·결과가
+  노출되지 않는 것을 확인했다.
+- 교차 사용자 검증을 위해 계정 A에 `V2 소유권 QA A` 회의
+  `ba9f773d6774450d8eb4950ea2573c3d`를 생성했고 Firestore 문서와 Storage 오디오가
+  실제 존재함을 확인했다. 계정 B에서는 목록에 이 회의가 없었고 직접 주소도
+  `회의를 찾을 수 없습니다.`만 표시해 A 제목·결과를 노출하지 않았다.
+- 계정 B로 `V2 탈퇴 QA B` 회의 `1f785cd046a04a1ba4d9f324b72476e9`를 한 번 실제
+  분석·저장했다. 상세 결과·오디오와 새로고침 복원을 확인한 뒤 `/account`에서
+  `탈퇴` 입력과 Google 재인증으로 MinuteMark 계정을 삭제했다.
+- 탈퇴 요청은 `minutemark-00010-wix`에서 `DELETE /api/account` HTTP 204로 끝났다.
+  이어 B 회의 Firestore 문서 0건, B 사용자 경로 문서 0건, Storage 회의 객체 0건,
+  B 사용자 경로 고아 객체 0건을 직접 읽어 확인했다. Firebase Console의 해당
+  프로젝트 Authentication 사용자 목록에서도 삭제한 B 사용자가 존재하지 않았다.
+- 탈퇴 뒤 브라우저는 공개 샘플로 돌아갔고, 삭제한 B 회의 주소는 로그인 화면으로
+  보호되며 제목·결과·오디오를 노출하지 않았다. 콘솔 error·warn은 0건이었다.
+- 교차 사용자 검증용으로 남아 있던 계정 A의 마지막 QA 회의도 삭제했다. 삭제 전
+  Firestore 문서 1건과 Storage 오디오 1개를 확인했고, 삭제 뒤 목록 0건·이전 상세
+  not-found·Firestore 상세 404·사용자 회의 0건·Storage 사용자 경로 객체 0건을
+  확인했다. 계정 A 자체는 유지했다.
+- 위 브라우저 캡처는 Chrome 실행 안의 inline 증거만 있으며 로컬 저장 경로는 없다.
 
 ## 9. 이전 실행 증거
 
@@ -229,6 +272,8 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
 ### 버그 수정
 
 - Firebase 모듈 준비 전에 `/auth` 화면이 사라지던 초기 로딩 문제 수정
+- 0% 배포 후보가 Firebase 웹 API 키의 HTTP referrer 허용 목록에서 빠져 Google
+  계정 선택 화면이 열리지 않던 설정 문제 수정
 - 모바일에서 새 회의·목록에 접근하지 못하거나 데스크톱 최근 목록이 노출되던 문제 수정
 - 뒤로가기·앞으로가기·새로고침과 작성 중 이탈 경고가 충돌하던 문제 수정
 - 실패한 저장의 Storage 객체와 계정 탈퇴 중 고아 객체를 정리하도록 보완
@@ -249,10 +294,12 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
 | 의존성·보안 점검 | `PASS` | `pip check` 0, `pip-audit` 0, 404·401·`no-store`·보안 헤더 |
 | Spec 리뷰 | `PASS` | 보조 Spec 충돌과 DELETE 404 계약 보완, 48/48 재통과 |
 | Standards/보안 리뷰 | `PASS` | P0/P1 코드 결함 0, 복구 절차 누락 보완 |
-| GitHub PR | 대기 | PR #5 head SHA와 merge gate |
-| Cloud Run 0% 후보 | 대기 | 리비전·tag URL·`/api/health` commit |
-| 실제 회원 QA | `BLOCKED` | 계정 소유자 로그인 후 저장·격리·삭제 증거 필요 |
-| `main` 병합·공개 V2 | `BLOCKED` | 위 필수 게이트가 모두 PASS일 때만 진행 |
+| GitHub PR | `OPEN` | PR #5 CLEAN·MERGEABLE; 최종 QA 기록 commit과 0% 후보 재확인 뒤 병합 |
+| Cloud Run 0% 후보 | `PASS` | `minutemark-00010-wix`, health commit `48a5fda…`, 트래픽 0% |
+| 배포 후보 공개 브라우저 QA | `PASS` | 1440×900·390×844 공개 화면과 Google 계정 선택 경계 |
+| 실제 회원 저장·재열람·회의 삭제 | `PASS` | 실제 분석 1회, 상세 복원, 모바일 삭제, Firestore·Storage 0건 |
+| 교차 사용자·계정 탈퇴 QA | `PASS` | B에서 A 목록 비노출·직접 주소 not-found, B 탈퇴 뒤 Firestore·Storage·Auth 부재 확인 |
+| `main` 병합·공개 V2 | `BLOCKED` | 최종 QA 기록 commit·0% 후보 재배포·PR 병합 뒤에만 진행 |
 
 리뷰에서 발견한 보조 Spec의 QA 정책 충돌은 현재 정본에 맞게 수정했고, 없는 회의와
 다른 사용자 회의의 `DELETE`가 동일하게 404를 반환하도록 계약과 구현을 맞췄다.
