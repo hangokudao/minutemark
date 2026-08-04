@@ -1,7 +1,7 @@
 # Cloudflare 프록시
 
 `minutemark.yozm.dev`의 모든 요청을 기존 Google Cloud Run 원본으로
-스트리밍하는 Cloudflare Worker입니다. 루트 `yozm.dev`에는 연결하지 않습니다.
+그대로 전달하는 Cloudflare Worker입니다. 루트 `yozm.dev`에는 연결하지 않습니다.
 
 - Cloudflare 계정: `Hangokudao@gmail.com's Account`
 - Worker: `minutemark-proxy`
