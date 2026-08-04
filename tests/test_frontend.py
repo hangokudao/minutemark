@@ -75,6 +75,16 @@ class FrontendContractTest(unittest.TestCase):
         self.assertNotIn("/api/budget", self.javascript)
         self.assertNotIn("/api/budget", {route.path for route in app.app.routes})
 
+    def test_sample_list_renders_api_duration_seconds(self):
+        self.assertNotIn("약 34초 · 공개 결과", self.javascript)
+        self.assertIn("function sampleDurationLabel(sample)", self.javascript)
+        self.assertIn("sample.duration_seconds", self.javascript)
+        self.assertIn("sampleDurationLabel(sample)", self.javascript)
+        for sample in app.SAMPLES.values():
+            self.assertIn("duration_seconds", sample)
+            self.assertIsInstance(sample["duration_seconds"], (int, float))
+            self.assertGreater(sample["duration_seconds"], 0)
+
     def test_private_requests_are_invalidated_at_auth_boundaries(self):
         self.assertIn("let privateRequestGeneration = 0;", self.javascript)
         self.assertIn("new AbortController()", self.javascript)
