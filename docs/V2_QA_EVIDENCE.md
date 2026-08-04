@@ -1,5 +1,8 @@
 # MinuteMark V2 릴리스 QA 증거
 
+> 이 문서의 A–M 표는 2026-08-02 로컬 RC 실행 기록이다. 최신 출시 판단은
+> [`V2.1 버전업 실행 기록`](./V2_1_RELEASE_PLAN.md)을 정본으로 사용한다.
+
 > 실행일: 2026-08-02
 > 후보: `codex/redesign-v1` 로컬 RC
 > 판정: 공개 화면·브라우저 OAuth·입력 경계 확인, 백엔드 회원 통합 FAIL, 전체 릴리스 BLOCKED
@@ -11,7 +14,35 @@ Google 로그인은 같은 Windows Chrome을 CDP Playwright로 제한해 검증�
 fallback은 당시 개인 Google 계정 선택과 동의, 입력 경계, 모바일 메뉴,
 로그아웃에만 사용했다. 저장 결과를 만들거나 성공 상태를 주입하지 않았다.
 
-## 자동·HTTP 검증
+## 2026-08-04 배포 후보 추가 증거
+
+| 항목 | 사용 URL·화면 | 실제 결과 | 저장소·HTTP 증거 | 스크린샷 | 판정 |
+| --- | --- | --- | --- | --- | --- |
+| 후보 일치 | `https://v2-rc---minutemark-2u3l25uhba-du.a.run.app/api/health` | 후보 `minutemark-00010-wix`가 branch head와 같은 commit으로 응답 | HTTP 200, commit `48a5fda14b5b68436bc6819d0b98185ab1be9729`, 트래픽 0%; V1 `minutemark-00007-w6c` 100% | 없음 | PASS |
+| 공개 데스크톱·모바일 | 후보 `/samples`, `/privacy`, `/auth`; 1440×900·390×844 | 확정 포트폴리오 경고, 공개 메뉴, privacy, 새로고침·뒤로·앞으로, 가로 넘침 없음을 확인 | 화면 응답 정상. Chrome 점검 표면이 실패 요청 목록을 제공하지 않아 네트워크 워터폴은 미수집 | Windows Chrome 브리지 내부 캡처, 로컬 경로 없음 | PASS |
+| Google 로그인 경계 | 후보 `/auth`; 1440×900 | Firebase 웹 API 키에 후보 referrer를 추가한 뒤 Google 소유 계정 선택 화면이 열림 | 수정 전 Identity Toolkit 403 `API_KEY_HTTP_REFERRER_BLOCKED`; 수정 뒤 프로젝트 설정 응답 성공 | Windows Chrome 브리지 내부 캡처, 로컬 경로 없음 | PASS |
+| 실제 회원 로그인·저장 | 후보 `/meetings/new` → `/meetings/{id}` → `/meetings`; 1440×900 | 계정 A 로그인, 실제 데모 오디오 1회 분석·저장, 상세·오디오·새로고침·목록 복원 | Firestore 문서 1건과 Storage 오디오 존재 확인 | Chrome inline 캡처, 로컬 경로 없음 | PASS |
+| 모바일 상세·회의 삭제 | 후보 `/meetings/{id}`; 390×844 | 제목·결과·오디오·메뉴와 overflow 없음 확인 뒤 삭제 확인 1회 | 삭제 전 문서·오디오 존재, 삭제 후 Firestore 0건·Storage 0건 | Chrome inline 캡처, 로컬 경로 없음 | PASS |
+| 로그아웃 뒤 비노출 | 후보의 실제 저장 회의 주소 | 앱 로그아웃 뒤 이전 상세 주소 직접 진입 | `/auth?next=…`로 보호되고 계정 A 회의 제목·결과 비노출 | 없음 | PASS |
+| 교차 사용자 접근 차단 | 계정 A 회의 `ba9f773d6774450d8eb4950ea2573c3d`; 1440×900 | 계정 B 목록과 A 직접 주소 접근 | B 목록에 A 제목 없음, 직접 주소 not-found, A 제목·결과 비노출 | Chrome 표면에서 HTTP 상태 미제공; 서버 소유권 UI 결과 확인 | 첨부·Chrome inline 캡처, 저장 경로 없음 | PASS |
+| 계정 B 분석·복원 | 후보 `/meetings/new` → `/meetings/1f785cd046a04a1ba4d9f324b72476e9`; 1440×900 | 실제 데모 오디오 1회 분석·저장, 상세·오디오·새로고침 | 실제 결과·오디오 표시와 동일 상세 복원 | 저장 전 Firestore 문서 1건·Storage 오디오 1개 확인 | Chrome inline 캡처, 저장 경로 없음 | PASS |
+| 계정 탈퇴 | 후보 `/account` → `/samples`; 1440×900 | `탈퇴` 입력, Google 재인증, MinuteMark B 계정 삭제 | 공개 샘플·로그아웃 UI 복귀, 삭제 회의 주소 비노출 | `DELETE /api/account` 204; B Firestore 문서·Storage 객체·고아 객체 0, Firebase Auth 사용자 부재 | 사용자 첨부·Chrome inline 캡처, 저장 경로 없음 | PASS |
+| QA 데이터 정리 | 후보 `/meetings`와 계정 A의 마지막 QA 회의 상세; 1920×911 | 삭제 전 문서·오디오 존재 확인, 삭제 확인 1회, 목록·이전 상세 재확인 | 목록 0건, 이전 상세 not-found | Firestore 상세 404·사용자 회의 0건, Storage 사용자 경로 객체 0건 | 사용자 첨부·Chrome inline 캡처, 저장 경로 없음 | PASS |
+
+- 최신 Windows Chrome 브리지 작업은
+  `019fc337-46d9-74d1-b912-3c586916f2ed`다.
+- Firebase Authentication 승인 도메인과 웹 API 키의 referrer 제한은 서로 다른
+  설정이다. 승인 도메인은 이미 있었지만 후보 referrer가 빠져 로그인이 막혔다.
+- 기존 referrer 4개와 API 제한은 보존했고 후보 주소 하나만 추가했다. key·token·
+  cookie·개인 이메일은 출력하거나 QA 증거에 남기지 않았다.
+- 실제 계정 선택·재인증은 소유자가 수행했다. 계정 A의 저장·재열람·회의 삭제와
+  계정 B의 교차 사용자 차단·저장·계정 탈퇴를 실제 브라우저에서 수행했다.
+  Firestore·Storage는 삭제 뒤 사용자 경로까지 0건을 직접 읽었고 Firebase Console
+  Authentication 사용자 목록에서도 삭제한 B 사용자가 존재하지 않음을 확인했다.
+- 교차 사용자 검증에 사용한 계정 A의 마지막 QA 회의도 삭제했다. 계정 A는
+  유지했으며 Firestore 사용자 회의와 Storage 사용자 경로 객체는 모두 0건이다.
+
+## 2026-08-02 자동·HTTP 검증
 
 | 항목 | 실제 결과 | 판정 |
 | --- | --- | --- |
@@ -74,8 +105,11 @@ CSS 수정 뒤 모바일 재확인은 저장 성공을 가장하지 않도록 �
 - 운영 runtime 커스텀 역할에는 `firebaseauth.users.get/delete`, Firestore CRUD가,
   별도 정책에는 Storage 객체 권한과 runtime SA self `signBlob`가 있다. 로컬 개인
   ADC에는 이 권한을 추가하지 않았다.
-- 현재 공개 서비스는 `minutemark-00007-w6c`, 기존 compute 서비스 계정, V1 트래픽
-  100%다. V2 배포는 수행하지 않았다.
+- 이 절의 원 실행 시점에는 공개 서비스가 `minutemark-00007-w6c`, 기존 compute
+  서비스 계정, V1 트래픽 100%였고 V2 배포를 수행하지 않았다. 최신 상태는 위
+  2026-08-04 절처럼 V2 `minutemark-00010-wix`가 트래픽 0% 후보로 추가됐으며,
+  공개 V1 트래픽은 계속 100%다.
 - A6API 공개 사이트에서 공급자 보관 기간·학습 사용·처리 국가·재위탁 조건을
-  확인할 수 있는 정책을 찾지 못했다. 회원 전사문 공개 전송은 법적·운영 확인 전
-  출시 차단 상태다.
+  확인할 수 있는 정책을 찾지 못했다. 이는 2026-08-02 당시 정식 서비스 기준의
+  출시 차단 판단이다. 최신 포트폴리오 후보는 민감정보 업로드 금지와 전사문 전송을
+  명시하고, 정식 서비스 전환 전에 공급자 조건을 별도로 확인하는 결정으로 갱신됐다.
