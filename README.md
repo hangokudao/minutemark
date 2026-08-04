@@ -7,7 +7,7 @@
 > 마세요. 업로더는 녹음·분석에 필요한 참여자 고지와 권한을 확보해야 합니다.
 > 전사문은 결과 생성을 위해 A6API로 전송됩니다.
 
-[현재 공개 V2 실행해 보기](https://minutemark-2u3l25uhba-du.a.run.app) ·
+[현재 공개 V2 실행해 보기](https://minutemark.yozm.dev) ·
 [GitHub 저장소](https://github.com/hangokudao/minutemark) ·
 [74초 실제 AI 데모](./docs/demo/minutemark-live-demo.mp4) ·
 [데모 녹화 대본](./docs/DEMO_SCRIPT.md)
@@ -98,8 +98,10 @@ A6 스마트 라우터는 판매자에 따라 OpenAI 호환 기능 지원 범위
 - 구조화: A6API `gpt-5.6-luna`
 - 패키징: Docker
 - 호스팅: Google Cloud Run 서울 리전
+- 공개 맞춤 주소: `https://minutemark.yozm.dev`
 - 리소스: 2 vCPU, 4 GiB, 동시 처리 1, 최소 0
 - V2 최초 공개 리비전: `minutemark-00012-luh`
+- 현재 공개 원본 리비전: `minutemark-00014-cah`, main `8211435…`
 - 복구용 V1 리비전: `minutemark-00007-w6c`
 - 이미지 digest:
   `sha256:09686b8d9d69bb5f1791b6eec3a2718dc5a4ad96344018fc66febd1b40a2ee2e`
@@ -129,6 +131,7 @@ A6API 토큰 `local-meeting-notes-mvp`의 총한도는 $1.00으로 설정했습�
 | 실패·재시도 상태 | PASS | 안전한 한국어 안내만 표시, 내부 오류·경로 없음 |
 | 오류 경로 콘솔·네트워크 | PASS | 콘솔 오류 없음, Cloud Run POST 422 두 번 |
 | V2 공개 주소 1440×900·390×844 | PASS | 샘플·privacy·Google 계정 선택 진입·모바일 메뉴·가로 넘침·콘솔 0건 |
+| 맞춤 주소 로그인·저장·모바일 | PASS | 실제 로그인·분석 저장·상세 복원·모바일 상세·삭제와 저장소 0건 |
 
 2026-08-04에는 0% V2 후보와 최종 공개 V2를 Windows Chrome 브리지로 확인했습니다.
 1440×900·390×844 공개 화면, 개인정보처리방침, 라우팅과 Google 로그인을 확인하고
@@ -141,6 +144,14 @@ Firebase Auth 잔여가 없음을 실제 상태로 확인했습니다. 항목별
 [V2 릴리스 QA 증거](./docs/V2_QA_EVIDENCE.md)에 기록했습니다.
 교차 사용자 검증에 사용한 A 회의도 마지막에 삭제해 두 계정의 QA 회의와 Storage
 객체가 모두 0건임을 확인했습니다. A 계정 자체는 유지했습니다.
+
+같은 날 기존 공개 맞춤 주소 `https://minutemark.yozm.dev`의 Firebase 연결 설정을
+완료했습니다. Authentication 승인 도메인과 브라우저 API 키 허용 주소에 이 주소만
+추가하고 기존 항목과 API 제한을 보존했습니다. Cloudflare에서는 이 호스트의 캐시만
+갱신했습니다.
+맞춤 주소에서 실제 Google 로그인, 데모 오디오 1회 분석·저장, 상세 새로고침,
+목록, 모바일 390×844, 회의 삭제를 다시 확인했습니다. 삭제 뒤 같은 제목의
+Firestore 문서는 0건이고 사용자 Storage 경로에도 객체가 남지 않았습니다.
 
 ![MinuteMark 모바일 화면](./docs/screenshots/minutemark-mobile.png)
 
@@ -215,7 +226,8 @@ token은 그대로이고 A6 라우터만 바뀐 사실을 확인했으며, 같�
 
 ## 현재 제한
 
-- V2 `minutemark-00012-luh`가 공개 Cloud Run 트래픽 100%를 처리합니다. 문제가
+- V2 원본 `minutemark-00014-cah`가 공개 Cloud Run 트래픽 100%를 처리하며,
+  `minutemark.yozm.dev`가 이 원본을 전달합니다. 문제가
   생기면 V1 `minutemark-00007-w6c`로 되돌리는 절차를 출시 기록에 남겼습니다.
 - 후보에서 실제 Google 로그인, 회원 목록·저장·signed audio URL·상세 복원·회의
   삭제, 다른 사용자 직접 주소 차단과 MinuteMark 계정 탈퇴를 확인했습니다. 탈퇴 뒤
