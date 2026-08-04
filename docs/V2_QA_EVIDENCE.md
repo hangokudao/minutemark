@@ -29,6 +29,8 @@ fallback은 당시 개인 Google 계정 선택과 동의, 입력 경계, 모바�
 | 계정 탈퇴 | 후보 `/account` → `/samples`; 1440×900 | `탈퇴` 입력, Google 재인증, MinuteMark B 계정 삭제 | 공개 샘플·로그아웃 UI 복귀, 삭제 회의 주소 비노출 | `DELETE /api/account` 204; B Firestore 문서·Storage 객체·고아 객체 0, Firebase Auth 사용자 부재 | 사용자 첨부·Chrome inline 캡처, 저장 경로 없음 | PASS |
 | QA 데이터 정리 | 후보 `/meetings`와 계정 A의 마지막 QA 회의 상세; 1920×911 | 삭제 전 문서·오디오 존재 확인, 삭제 확인 1회, 목록·이전 상세 재확인 | 목록 0건, 이전 상세 not-found | Firestore 상세 404·사용자 회의 0건, Storage 사용자 경로 객체 0건 | 사용자 첨부·Chrome inline 캡처, 저장 경로 없음 | PASS |
 | 최종 공개 V2 | `https://minutemark-2u3l25uhba-du.a.run.app`; 1440×900·390×844 | 공개 샘플 2개·고지·Google 계정 선택 진입·모바일 메뉴·가로 넘침 없음, console 0건 | health 200 commit `48b76d2…`, samples·privacy·auth 200, docs 404; `minutemark-00012-luh` 100% | Chrome inline 캡처, 저장 경로 없음 | PASS |
+| 맞춤 주소 Firebase 연결 | Firebase Authentication·브라우저 API 키 설정 | `minutemark.yozm.dev`를 두 허용 목록에 각각 추가하고 기존 항목을 보존 | 승인 도메인 5→6, referrer 5→6, API 대상 제한 26개 유지; key·token 값 미출력 | 없음 | PASS |
+| 맞춤 주소 실제 저장·모바일 | `https://minutemark.yozm.dev`; 1440×900·390×844 | 실제 로그인, 데모 오디오 1회 분석·저장, 상세·오디오·새로고침·목록, 모바일 상세·메뉴·overflow 없음, 회의 삭제 | console error·warning 0, 삭제 뒤 이전 상세 not-found, 같은 제목 Firestore 0건, Storage 사용자 경로 0건 | Windows Temp `minutemark-custom-qa-desktop-detail.png`, `minutemark-custom-qa-mobile-detail.png` | PASS |
 
 - 최신 Windows Chrome 브리지 작업은
   `019fc337-46d9-74d1-b912-3c586916f2ed`다.
@@ -44,6 +46,9 @@ fallback은 당시 개인 Google 계정 선택과 동의, 입력 경계, 모바�
   유지했으며 Firestore 사용자 회의와 Storage 사용자 경로 객체는 모두 0건이다.
 - PR #5 merge commit과 원격 main, 공개 `/api/health` commit이 일치했다. 공개 전환
   뒤 Windows Chrome 브리지의 데스크톱·모바일 비파괴 스모크도 통과했다.
+- 맞춤 주소 캐시는 Cloudflare에서 해당 hostname만 갱신했다. 맞춤 주소가 허용된
+  Firebase origin을 하나 늘리지만 서버 secret이나 저장 데이터는 공개하지 않는다.
+  브라우저 API 키 값과 계정 정보는 QA 기록에 남기지 않았다.
 
 ## 2026-08-02 자동·HTTP 검증
 
