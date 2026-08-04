@@ -1,5 +1,6 @@
 import io
 import json
+import math
 import tempfile
 import unittest
 import urllib.error
@@ -78,6 +79,36 @@ class AudioInputTest(unittest.IsolatedAsyncioTestCase):
             "오디오 파일을 읽을 수 없습니다. "
             "올바른 오디오 파일인지 확인해 주세요.",
         )
+
+    def test_unknown_audio_duration_is_reported_as_unknown(self):
+        with patch("app.av.open") as av_open:
+            container = av_open.return_value.__enter__.return_value
+            container.duration = None
+            container.streams = []
+
+            self.assertIsNone(app.audio_duration_seconds(Path("unknown.wav")))
+
+    def test_invalid_audio_duration_is_rejected_before_analysis(self):
+        invalid_durations = (None, 0.0, -1.0, math.nan, math.inf)
+
+        for duration in invalid_durations:
+            with self.subTest(duration=duration):
+                with (
+                    patch("app.audio_duration_seconds", return_value=duration),
+                    patch("app.reserve_analysis_slot") as reserve_slot,
+                    patch("app.ensure_budget_room") as ensure_budget,
+                    patch("app.get_model") as get_model,
+                    patch("app.transcribe") as transcribe,
+                    patch("app.a6_chat") as a6_chat,
+                ):
+                    with self.assertRaises(ValueError):
+                        app.analyze_audio(Path("invalid.wav"), "invalid.wav")
+
+                reserve_slot.assert_not_called()
+                ensure_budget.assert_not_called()
+                get_model.assert_not_called()
+                transcribe.assert_not_called()
+                a6_chat.assert_not_called()
 
     @patch("app.run_in_threadpool", new_callable=AsyncMock)
     async def test_unexpected_value_error_hides_internal_details(
