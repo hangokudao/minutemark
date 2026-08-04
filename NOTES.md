@@ -9,13 +9,13 @@ A6API LLM으로 처리해, 포트폴리오의 핵심 경험을 녹음당 60초 �
 ## 고정한 핵심 경험
 
 1. 20–34초 회의 녹음 입력
-2. Whisper가 타임스탬프 전사
-3. A6API `claude-sonnet-5`가 결정과 할 일을 구조화
+2. Whisper가 시간 정보가 붙은 음성 기록을 만든다
+3. A6API `claude-sonnet-5`가 결정과 할 일을 항목별로 정리한다
 4. 서버가 모든 근거 구간 ID를 검증
 5. 결과 항목에서 해당 오디오 구간으로 이동 가능
 
 Day 1에서 1–4번의 기술 리스크를 먼저 검증했고, 한국어 게이트 통과 후
-웹 UI와 오디오 seek를 MVP 범위에 포함했다.
+웹 UI와 재생 위치 이동을 MVP 범위에 포함했다.
 
 ## 실행
 
@@ -63,7 +63,7 @@ docker compose run --rm -v ./tests:/tests:ro --entrypoint python web \
 
 1. `법안 통과 후속 작업` 샘플을 누른다.
 2. 처리 완료 후 결정과 할 일이 모두 나오는지 확인한다.
-3. `근거 듣기`를 눌러 오디오 위치와 전사 강조가 함께 이동하는지 확인한다.
+3. `근거 듣기`를 눌러 오디오 위치와 해당 음성 기록 강조가 함께 이동하는지 확인한다.
 4. 자신의 WAV 또는 M4A 파일을 올려 같은 흐름을 확인한다.
 
 ### Cloud Run
@@ -132,7 +132,7 @@ gcloud run services logs read minutemark \
 `main`과 같은 버전인지 확인한다. `cloudrun-deploy.sh`는 최초 설정이나
 자동 배포 복구용으로만 사용한다.
 
-새 버전이 실패하면 Cloud Run 콘솔의 `Revisions`에서 이전 정상 revision으로
+새 버전이 실패하면 Cloud Run 콘솔의 `Revisions`에서 이전 정상 revision(배포 버전)으로
 트래픽을 되돌린다. 즉시 공개를 중단하려면 다음 명령으로 비인증 접근을 제거한다.
 
 ```sh
@@ -166,7 +166,7 @@ gcloud run services remove-iam-policy-binding minutemark \
 - 결제 계정: `012A36-ED8E42-7CFE04`, 활성 상태
 - 서비스: `minutemark`, 리전 `asia-northeast3`
 - 공개 URL: `https://minutemark-2u3l25uhba-du.a.run.app`
-- 배포 revision: `minutemark-00004-65g`, 트래픽 100%
+- 배포 revision(버전): `minutemark-00004-65g`, 트래픽 100%
 - 이미지 digest:
   `sha256:c2fe6d8629b0928783885f4b44274ca7a65faf3ec7068c90856f947e3b48dfa5`
 - Cloud Build:
@@ -180,9 +180,9 @@ gcloud run services remove-iam-policy-binding minutemark \
   성공함. revision 2에 네트워크·5xx 1회 재시도와 서버측 예외 로그를 추가함
 - revision 2에서 A6 스마트 라우터가 선택한 일부 판매자가
   `response_format=json_schema`를 HTTP 400으로 거부하는 실제 실패를 확인함
-- revision 3은 해당 400에 한해 일반 JSON 요청으로 한 번 폴백하고, 반환 구조와
+- revision 3은 해당 400에 한해 일반 JSON 요청으로 한 번 다시 요청하고, 반환 구조와
   근거 구간을 서버에서 다시 검증함. Docker 회귀 테스트 9개 PASS
-- revision 3 공개 검증에서 실제 폴백 로그 확인 후 AI POST HTTP 200,
+- revision 3 공개 검증에서 실제 재요청 로그 확인 후 AI POST HTTP 200,
   서버 처리 44.25초, 할 일 1개, 근거 검증 PASS, 예상 A6API 비용
   `$0.00006705`
 - 복구 revision: `minutemark-00003-gg8`
@@ -194,9 +194,9 @@ gcloud run services remove-iam-policy-binding minutemark \
 - Windows Chrome 1440×900 데스크톱 PASS
 - Windows Chrome 공개 샘플 2개 실제 분석과 `근거 듣기` PASS. 서버 로그에서
   `/api/analyze-sample/action`과 `/api/analyze-sample/decision` 모두 HTTP 200
-- 좁은 화면 390×844 랜딩은 격리 headless Chrome fallback에서 PASS
+- 좁은 화면 390×844 랜딩은 격리 headless Chrome 대체 경로에서 PASS
 - Windows Chrome에서 `minutemark-upload-test.wav` 실제 업로드 PASS:
-  34.90초, 전사 13구간, 결정 1개, 근거 S1 이동 0.40초,
+  34.90초, 음성 기록 13구간, 결정 1개, 근거 S1 이동 0.40초,
   예상 A6API 비용 `$0.00010985`
 - revision 4는 `av.error.InvalidDataError`만 안전한 422 한국어 메시지로 변환함.
   Docker 독립 빌드와 전체 회귀 테스트 10개 PASS
@@ -231,9 +231,9 @@ docker compose run --rm sample-downloader
 
 - 최종 녹음: 서로 다른 자연스러운 한국어 회의 음성 2개, 각 20–30초
 - warm 전체 처리 시간: 녹음당 60초 이하
-- 전사: 미리 적은 핵심 사실 5개 중 4개 이상 보존
+- 음성 인식: 미리 적은 핵심 사실 5개 중 4개 이상 보존
 - 구조: `decisions`, `action_items` 배열 생성
-- 근거: 모든 `segment_ids`가 실제 전사 구간에 존재
+- 근거: 모든 `segment_ids`가 실제 음성 기록 구간에 존재
 - 유용성: 녹음마다 정확한 결정 또는 할 일 1개 이상
 - 비용: 선택한 A6 가격 기준 실행 비용을 기록하고 월 상한 $1 이하
 
@@ -245,18 +245,18 @@ docker compose run --rm sample-downloader
 - `faster-whisper` 1.2.1 이미지 빌드 성공
 - Whisper `small` CPU INT8 모델 로드 성공
 - Ollama `qwen2.5:1.5b` 로컬 모델 등록 성공
-- Qwen warm 구조화 추론: 6.32초
+- Qwen warm 결과 정리 추론: 6.32초
 - 연기된 품질 문제:
   - 두 개의 필수 결과 배열을 모델이 직접 채울 때 같은 문장을 중복 분류함
   - 단일 `items` 배열에서 `decision | action_item`을 고르게 하고 서버가 나누자 해결됨
   - JSON Schema의 `enum`으로 실제 구간 ID만 생성하도록 제한함
 - 아직 판정하지 못한 항목:
-  - 실제 한국어 음성 전사 정확도
+  - 실제 한국어 음성 인식 정확도
   - 녹음당 warm 전체 처리 시간
-  - 실제 전사에 대한 결정·할 일 의미 정확도
+  - 실제 음성 기록을 바탕으로 한 결정·할 일의 의미 정확도
 
 이 단계의 상태는 **입력 대기**였다. 이후 공개 라이선스의 자연스러운 한국어
-발화 2개를 확보해 합성 음성 없이 최종 판정했다.
+실제 말이 담긴 샘플 2개를 확보해 합성 음성 없이 최종 판정했다.
 
 ## 2026-07-30 모델 결정
 
@@ -264,9 +264,9 @@ docker compose run --rm sample-downloader
 - A6 개인 스마트 라우터 우선 판매자: ID 1263
 - 화면 확인 가격: 입력 `$0.0180/1M`, 출력 `$0.0900/1M`
 - 월 API 소비 상한: `$1`
-- 전송 범위: 음성 원본이 아닌 Whisper 전사문과 구간 ID만 전송
+- 전송 범위: 음성 원본이 아닌 Whisper 음성 인식 결과와 구간 ID만 전송
 - 주의: 판매자 ID는 API 요청 필드로 추측해 보내지 않는다. A6 개인 스마트 라우터에서 설정한다.
-- 구조화: OpenAI 호환 `response_format=json_schema`, `strict=true`
+- 결과 정리: OpenAI 호환 `response_format=json_schema`, `strict=true`
 - 검증: 서버가 모든 근거 구간 ID의 실제 존재 여부를 다시 검사
 
 로컬 Qwen/Ollama는 A6API 경로로 대체했다. 기존 중간 결과는 비교 기록으로만 남긴다.
@@ -279,7 +279,7 @@ docker compose run --rm sample-downloader
 - `.env`는 Git과 Docker 빌드 컨텍스트에서 제외
 - 키가 없으면 외부 호출 전 종료
 - 음성 2개가 없으면 외부 호출 전 종료
-- 실제 A6 연결 및 구조화 호출 성공
+- 실제 A6 연결 및 결과 정리 호출 성공
 
 ## 2026-07-30 공개 AMI 회의 10개 결과
 
@@ -291,12 +291,12 @@ docker compose run --rm sample-downloader
 - 수동 의사결정 정답 대조: 9/10
 - 남은 의미 오류: `ami-02`의 LCD·spinning wheel 결정을 `action_item`으로 분류
 
-공개 영어 회의로 Docker·전사·구조화·근거 검증·비용 경로는 통과했다.
-한국어 최종 GO/NO-GO는 아래 자연 발화 2개로 판정했다.
+공개 영어 회의로 Docker·음성 인식·결과 정리·근거 검증·비용 경로는 통과했다.
+한국어 최종 GO/NO-GO는 아래 자연 발화(사람이 실제로 자연스럽게 한 말) 샘플 2개로 판정했다.
 
 ## 2026-07-30 한국어 최종 게이트
 
-- 자연 발화 출처: KMSAV에 등재된 공개 YouTube 영상 2개
+- 자연 발화(사람이 실제로 자연스럽게 한 말) 샘플 출처: KMSAV에 등재된 공개 YouTube 영상 2개
 - 라이선스 확인: 각 영상 `Creative Commons Attribution license (reuse allowed)`
 - `ko-01-action.wav`: 25.47초, 결정 1개와 할 일 1개, 근거 ID 검증 PASS
 - `ko-02-decision.wav`: 23.52초, 결정 1개, 근거 ID 검증 PASS
@@ -329,23 +329,23 @@ docker compose run --rm sample-downloader
 ### JOB
 
 면접관 또는 데모 시청자가 회의 음성을 직접 넣거나 공개 샘플을 선택해,
-실제 AI가 만든 전사·결정·할 일을 확인하고 각 결과의 근거 음성으로 즉시
+실제 AI가 만든 음성 기록·결정·할 일을 확인하고 각 결과의 근거가 된 음성으로 바로
 이동할 수 있어야 한다.
 
 ### CONTENT
 
 - 입력: 실제 오디오 파일명, 크기, 공개 한국어 데모 2개
-- 처리 상태: Whisper 전사와 A6API 구조화 단계
-- 결과: 타임스탬프 전사, 결정, 할 일, 담당자, 기한, 근거 구간
+- 처리 상태: Whisper 음성 인식과 A6API 결과 정리 단계
+- 결과: 시간 정보가 붙은 음성 기록, 결정, 할 일, 담당자, 기한, 근거 구간
 - 검증 정보: 모델, 처리 시간, 토큰 기반 예상 비용, 근거 유효성
 - 경계 상태: 파일 미선택, 지원하지 않는 확장자, 20MB 초과, API 실패,
-  결과 없음, 긴 전사
+  결과 없음, 긴 음성 기록
 
 ### SYSTEM
 
 프로젝트 소유의 CSS 토큰을 사용한다. 시스템 sans-serif 한 계열, 밝은 중성
 배경, 흰 작업면, 짙은 남색 본문, 파란색 주 액션, 보라색 결정, 청록색 할 일로
-제한한다. 데스크톱은 전사와 결과를 나란히, 좁은 화면은 단일 열로 배치한다.
+제한한다. 데스크톱은 음성 기록과 결과를 나란히, 좁은 화면은 단일 열로 배치한다.
 
 ### PRIMARY
 
@@ -362,12 +362,12 @@ docker compose run --rm sample-downloader
 ### INTERACTION
 
 결정·할 일 카드의 `근거 듣기`를 누르면 첫 근거 구간으로 오디오가 이동하고
-해당 전사 구간이 강조된다. 마우스와 키보드 모두 지원하며,
+해당 음성 기록 구간이 강조된다. 마우스와 키보드 모두 지원하며,
 `prefers-reduced-motion`에서는 부드러운 스크롤만 제거하고 기능은 유지한다.
 
 ### DECISIONS
 
-Otter에서 가져오는 것은 `요약/전사 분리`, `결정·할 일`, `근거로 이동`이라는
+Otter에서 가져오는 것은 `요약/음성 기록 분리`, `결정·할 일`, `근거로 이동`이라는
 핵심 경험뿐이다. 사이드바, 협업, 채팅, 댓글, 계정, 실시간 회의 기능은
 3일 MVP 범위에서 제외한다. 가짜 KPI와 마케팅용 hero도 만들지 않는다.
 

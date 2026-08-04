@@ -27,7 +27,7 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 
 > 포트폴리오 데모입니다. 실제 업무·기밀·민감정보가 포함된 파일을 업로드하지
 > 마세요. 업로더는 녹음·분석에 필요한 참여자 고지와 권한을 확보해야 합니다.
-> 전사문은 결과 생성을 위해 A6API로 전송됩니다.
+> 음성을 글로 옮긴 내용은 결과를 만들기 위해 A6API로 전송됩니다.
 
 결정 질문은 하나다.
 
@@ -67,7 +67,7 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 | 공개 UI | Windows Chrome 1440×900·390×844 | privacy·샘플·메뉴에 막힘·넘침 없음 | `PASS` · 배포 후보의 공개 화면·라우팅·모바일 메뉴·가로 넘침 확인 |
 | 회원가입 UI | 회원 기능을 켠 독립 후보의 `/auth` | 가입 안내와 Google 버튼 표시 | `PASS` · 실제 0% 후보에서 표시·새로고침 확인 |
 | 개인정보 고지 | 공개 privacy 화면과 실제 데이터 흐름 | 문의처·수집·저장·외부 AI 전송 설명 일치 | `PASS` · 확정 문구 계약 테스트와 배포 후보 화면 확인 |
-| A6 외부 처리 | 포트폴리오 한계·전사문 전송·미확인 조건 고지 | 민감정보 업로드 금지와 확인 범위를 모든 사용자가 알 수 있음 | `PASS` · `/samples`·`/privacy`에서 확정 문구 확인 |
+| A6 외부 처리 | 포트폴리오 한계·음성 인식 결과 전송·미확인 조건 고지 | 민감정보 업로드 금지와 확인 범위를 모든 사용자가 알 수 있음 | `PASS` · `/samples`·`/privacy`에서 확정 문구 확인 |
 | 배포·복구 | 후보 commit·runtime·기존 V1 | 후보 검증 성공, V1 유지·rollback 가능 | `PASS` · main `48b76d2…`, V2 `minutemark-00012-luh` 100%, V1 복구 절차 유지 |
 
 필수 행에 `FAIL` 또는 `BLOCKED`가 있으면 V2.1을 공개 배포하지 않는다. 기존 V1
@@ -107,12 +107,12 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 
 ### 공개 전환과 복구
 
-1. 공개 전환 직전에 Cloud Run의 현재 100% 트래픽 리비전과 새 V2 후보 리비전을
-   다시 읽어 기록한다. 이번 작업의 기존 정상 리비전은 `minutemark-00007-w6c`다.
+1. 공개 전환 직전에 Cloud Run의 현재 100% 트래픽 revision(배포 버전)과 새 V2 후보 revision(배포 버전)을
+   다시 읽어 기록한다. 이번 작업의 기존 정상 revision(배포 버전)은 `minutemark-00007-w6c`다.
 2. V2 후보의 `/api/health` commit이 GitHub `main` SHA와 같고 필수 QA가 모두
-   PASS일 때만 새 리비전으로 트래픽을 전환한다.
+   PASS일 때만 새 revision(배포 버전)으로 트래픽을 전환한다.
 3. 전환 후 health·공개 샘플·로그인 진입 스모크가 실패하면 아래 명령으로 기존
-   정상 리비전에 트래픽 100%를 되돌린다.
+   정상 revision(배포 버전)에 트래픽 100%를 되돌린다.
 
 ```sh
 gcloud run services update-traffic minutemark \
@@ -122,7 +122,7 @@ gcloud run services update-traffic minutemark \
 ```
 
 4. 복구 뒤 공개 `/api/health`가 HTTP 200인지 확인하고, Cloud Run 트래픽 조회에서
-   기존 리비전 100%를 확인한다. 전환 전 후보가 실패하면 트래픽을 건드리지 않는다.
+   기존 revision(배포 버전) 100%를 확인한다. 전환 전 후보가 실패하면 트래픽을 건드리지 않는다.
 
 ## 8. 이번 실행 증거
 
@@ -162,7 +162,7 @@ gcloud run services update-traffic minutemark \
 
 ### 실제 Cloud Run 0% 후보
 
-- 리비전: `minutemark-00010-wix`
+- revision(배포 버전): `minutemark-00010-wix`
 - 태그 URL: `https://v2-rc---minutemark-2u3l25uhba-du.a.run.app`
 - `/api/health`: 200, commit
   `48a5fda14b5b68436bc6819d0b98185ab1be9729`
@@ -207,7 +207,7 @@ gcloud run services update-traffic minutemark \
   `탈퇴` 입력과 Google 재인증으로 MinuteMark 계정을 삭제했다.
 - 탈퇴 요청은 `minutemark-00010-wix`에서 `DELETE /api/account` HTTP 204로 끝났다.
   이어 B 회의 Firestore 문서 0건, B 사용자 경로 문서 0건, Storage 회의 객체 0건,
-  B 사용자 경로 고아 객체 0건을 직접 읽어 확인했다. Firebase Console의 해당
+  B 사용자 경로에 삭제되지 않고 남은 객체가 0건임을 직접 읽어 확인했다. Firebase Console의 해당
   프로젝트 Authentication 사용자 목록에서도 삭제한 B 사용자가 존재하지 않았다.
 - 탈퇴 뒤 브라우저는 공개 샘플로 돌아갔고, 삭제한 B 회의 주소는 로그인 화면으로
   보호되며 제목·결과·오디오를 노출하지 않았다. 콘솔 error·warn은 0건이었다.
@@ -223,7 +223,7 @@ gcloud run services update-traffic minutemark \
   commit과 원격 `main`은 `48b76d2cfd85aad3703fdfe4bacf67d8246e8095`로 일치했다.
 - Cloud Build `3d1afa6a-a0dd-418e-b529-8ae46b61430a`의 Docker build, test,
   image push, 0% deploy 단계가 모두 `SUCCESS`로 끝났다.
-- main SHA의 0% 리비전 `minutemark-00012-luh`에서 `/api/health` 200과 같은 commit,
+- main SHA의 0% revision(배포 버전) `minutemark-00012-luh`에서 `/api/health` 200과 같은 commit,
   `/samples`·`/privacy`·`/auth` 200, `/docs` 404, 보안 헤더를 확인했다.
 - 이후 `minutemark-00012-luh`로 공개 트래픽을 100% 전환했다. 실제 공개 주소의
   `/api/health`는 같은 main commit을 반환했다.
@@ -314,7 +314,7 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
 ### 변경
 
 - A6API 분석 모델을 `gpt-5.6-luna`로 전환
-- 포트폴리오 안내를 실제 업무·기밀·민감정보 금지, 참여자 권한, 전사문 A6API
+- 포트폴리오 안내를 실제 업무·기밀·민감정보 금지, 참여자 권한, 음성 인식 결과의 A6API 전송
   전송을 함께 알리는 확정 문구로 통일
 - 실제 QA 계정 이메일을 공개 문서에서 `테스트 계정 A/B`로 익명화
 
@@ -325,7 +325,7 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
   계정 선택 화면이 열리지 않던 설정 문제 수정
 - 모바일에서 새 회의·목록에 접근하지 못하거나 데스크톱 최근 목록이 노출되던 문제 수정
 - 뒤로가기·앞으로가기·새로고침과 작성 중 이탈 경고가 충돌하던 문제 수정
-- 실패한 저장의 Storage 객체와 계정 탈퇴 중 고아 객체를 정리하도록 보완
+- 실패한 저장의 Storage 객체와 계정 탈퇴 중 남은 객체를 정리하도록 보완
 
 ### 보안
 
@@ -352,11 +352,11 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
 | `main` 병합·공개 V2 | `PASS` | V2 100%, 공개 health·샘플·privacy·auth·데스크톱·모바일 스모크 통과 |
 | 맞춤 주소 Firebase 연결·실사용 QA | `PASS` | Firebase 두 허용 목록, 호스트 캐시 갱신, 로그인·저장·모바일·삭제·저장소 0건 |
 
-리뷰에서 발견한 보조 Spec의 QA 정책 충돌은 현재 정본에 맞게 수정했고, 없는 회의와
+리뷰에서 발견한 보조 Spec의 QA 정책 충돌은 현재 기준 문서에 맞게 수정했고, 없는 회의와
 다른 사용자 회의의 `DELETE`가 동일하게 404를 반환하도록 계약과 구현을 맞췄다.
 관련 회귀 48/48을 다시 통과해 Spec 리뷰를 PASS로 닫았다.
 
 비차단 유지보수 항목은 `cloudbuild.yaml`과 `cloudrun-deploy.sh`의 배포 환경변수
-중복 한 건이다. 현재 값은 일치한다. 둘 중 하나를 다음에 변경할 때 공통 정본 또는
+중복 한 건이다. 현재 값은 일치한다. 둘 중 하나를 다음에 변경할 때 공통 기준 또는
 일치 검사를 먼저 마련하지 않으면 설정이 어긋날 수 있으므로 `BEFORE_NEXT_CHANGE`로
 기록한다.
