@@ -107,12 +107,12 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 
 ### 공개 전환과 복구
 
-1. 공개 전환 직전에 Cloud Run의 현재 100% 트래픽 배포 버전과 새 V2 후보 배포 버전을
-   다시 읽어 기록한다. 이번 작업의 기존 정상 버전은 `minutemark-00007-w6c`다.
+1. 공개 전환 직전에 Cloud Run의 현재 100% 트래픽 revision(배포 버전)과 새 V2 후보 revision(배포 버전)을
+   다시 읽어 기록한다. 이번 작업의 기존 정상 revision(배포 버전)은 `minutemark-00007-w6c`다.
 2. V2 후보의 `/api/health` commit이 GitHub `main` SHA와 같고 필수 QA가 모두
-   PASS일 때만 새 배포 버전으로 트래픽을 전환한다.
+   PASS일 때만 새 revision(배포 버전)으로 트래픽을 전환한다.
 3. 전환 후 health·공개 샘플·로그인 진입 스모크가 실패하면 아래 명령으로 기존
-   정상 배포 버전에 트래픽 100%를 되돌린다.
+   정상 revision(배포 버전)에 트래픽 100%를 되돌린다.
 
 ```sh
 gcloud run services update-traffic minutemark \
@@ -122,7 +122,7 @@ gcloud run services update-traffic minutemark \
 ```
 
 4. 복구 뒤 공개 `/api/health`가 HTTP 200인지 확인하고, Cloud Run 트래픽 조회에서
-   기존 배포 버전 100%를 확인한다. 전환 전 후보가 실패하면 트래픽을 건드리지 않는다.
+   기존 revision(배포 버전) 100%를 확인한다. 전환 전 후보가 실패하면 트래픽을 건드리지 않는다.
 
 ## 8. 이번 실행 증거
 
@@ -162,7 +162,7 @@ gcloud run services update-traffic minutemark \
 
 ### 실제 Cloud Run 0% 후보
 
-- 배포 버전: `minutemark-00010-wix`
+- revision(배포 버전): `minutemark-00010-wix`
 - 태그 URL: `https://v2-rc---minutemark-2u3l25uhba-du.a.run.app`
 - `/api/health`: 200, commit
   `48a5fda14b5b68436bc6819d0b98185ab1be9729`
@@ -223,7 +223,7 @@ gcloud run services update-traffic minutemark \
   commit과 원격 `main`은 `48b76d2cfd85aad3703fdfe4bacf67d8246e8095`로 일치했다.
 - Cloud Build `3d1afa6a-a0dd-418e-b529-8ae46b61430a`의 Docker build, test,
   image push, 0% deploy 단계가 모두 `SUCCESS`로 끝났다.
-- main SHA의 0% 배포 버전 `minutemark-00012-luh`에서 `/api/health` 200과 같은 commit,
+- main SHA의 0% revision(배포 버전) `minutemark-00012-luh`에서 `/api/health` 200과 같은 commit,
   `/samples`·`/privacy`·`/auth` 200, `/docs` 404, 보안 헤더를 확인했다.
 - 이후 `minutemark-00012-luh`로 공개 트래픽을 100% 전환했다. 실제 공개 주소의
   `/api/health`는 같은 main commit을 반환했다.

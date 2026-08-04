@@ -132,7 +132,7 @@ gcloud run services logs read minutemark \
 `main`과 같은 버전인지 확인한다. `cloudrun-deploy.sh`는 최초 설정이나
 자동 배포 복구용으로만 사용한다.
 
-새 버전이 실패하면 Cloud Run 콘솔의 `Revisions`에서 이전 정상 배포 버전으로
+새 버전이 실패하면 Cloud Run 콘솔의 `Revisions`에서 이전 정상 revision(배포 버전)으로
 트래픽을 되돌린다. 즉시 공개를 중단하려면 다음 명령으로 비인증 접근을 제거한다.
 
 ```sh
@@ -166,7 +166,7 @@ gcloud run services remove-iam-policy-binding minutemark \
 - 결제 계정: `012A36-ED8E42-7CFE04`, 활성 상태
 - 서비스: `minutemark`, 리전 `asia-northeast3`
 - 공개 URL: `https://minutemark-2u3l25uhba-du.a.run.app`
-- 배포 버전: `minutemark-00004-65g`, 트래픽 100%
+- 배포 revision(버전): `minutemark-00004-65g`, 트래픽 100%
 - 이미지 digest:
   `sha256:c2fe6d8629b0928783885f4b44274ca7a65faf3ec7068c90856f947e3b48dfa5`
 - Cloud Build:
@@ -176,16 +176,16 @@ gcloud run services remove-iam-policy-binding minutemark \
 - 외부 `/`, `/api/health`, `/api/samples` HTTP 200
 - 실제 한국어 샘플: 외부 경로 38.23초, 서버 처리 40.66초, 할 일 1개,
   근거 검증 PASS, 예상 A6API 비용 `$0.00015881`
-- 첫 배포 버전에서 A6 경로의 일시적 502 한 건 발생 후 같은 요청이 200으로
-  성공함. 두 번째 배포 버전에 네트워크·5xx 1회 재시도와 서버측 예외 로그를 추가함
-- 두 번째 배포 버전에서 A6 스마트 라우터가 선택한 일부 판매자가
+- 첫 revision에서 A6 경로의 일시적 502 한 건 발생 후 같은 요청이 200으로
+  성공함. revision 2에 네트워크·5xx 1회 재시도와 서버측 예외 로그를 추가함
+- revision 2에서 A6 스마트 라우터가 선택한 일부 판매자가
   `response_format=json_schema`를 HTTP 400으로 거부하는 실제 실패를 확인함
-- 세 번째 배포 버전은 해당 400에 한해 일반 JSON 요청으로 한 번 다시 요청하고, 반환 구조와
+- revision 3은 해당 400에 한해 일반 JSON 요청으로 한 번 다시 요청하고, 반환 구조와
   근거 구간을 서버에서 다시 검증함. Docker 회귀 테스트 9개 PASS
-- 세 번째 배포 버전 공개 검증에서 실제 재요청 로그 확인 후 AI POST HTTP 200,
+- revision 3 공개 검증에서 실제 재요청 로그 확인 후 AI POST HTTP 200,
   서버 처리 44.25초, 할 일 1개, 근거 검증 PASS, 예상 A6API 비용
   `$0.00006705`
-- 복구 배포 버전: `minutemark-00003-gg8`
+- 복구 revision: `minutemark-00003-gg8`
 - `PRODUCTION` 런타임 게이트: PASS
 - Google Cloud 프로젝트 전용 월 `₩1,000` 예산
   `c40f522a-a5f6-439f-bc24-5c598100d835` 생성. 현재 지출 50%·90%·100%에서
@@ -198,7 +198,7 @@ gcloud run services remove-iam-policy-binding minutemark \
 - Windows Chrome에서 `minutemark-upload-test.wav` 실제 업로드 PASS:
   34.90초, 음성 기록 13구간, 결정 1개, 근거 S1 이동 0.40초,
   예상 A6API 비용 `$0.00010985`
-- 네 번째 배포 버전은 `av.error.InvalidDataError`만 안전한 422 한국어 메시지로 변환함.
+- revision 4는 `av.error.InvalidDataError`만 안전한 422 한국어 메시지로 변환함.
   Docker 독립 빌드와 전체 회귀 테스트 10개 PASS
 - Windows Chrome에서 잘못된 WAV와 재시도 1회 모두
   `오디오 파일을 읽을 수 없습니다. 올바른 오디오 파일인지 확인해 주세요.`만 표시
@@ -292,11 +292,11 @@ docker compose run --rm sample-downloader
 - 남은 의미 오류: `ami-02`의 LCD·spinning wheel 결정을 `action_item`으로 분류
 
 공개 영어 회의로 Docker·음성 인식·결과 정리·근거 검증·비용 경로는 통과했다.
-한국어 최종 GO/NO-GO는 아래 자연스러운 말투의 샘플 2개로 판정했다.
+한국어 최종 GO/NO-GO는 아래 자연 발화(사람이 실제로 자연스럽게 한 말) 샘플 2개로 판정했다.
 
 ## 2026-07-30 한국어 최종 게이트
 
-- 자연스러운 한국어 샘플 출처: KMSAV에 등재된 공개 YouTube 영상 2개
+- 자연 발화(사람이 실제로 자연스럽게 한 말) 샘플 출처: KMSAV에 등재된 공개 YouTube 영상 2개
 - 라이선스 확인: 각 영상 `Creative Commons Attribution license (reuse allowed)`
 - `ko-01-action.wav`: 25.47초, 결정 1개와 할 일 1개, 근거 ID 검증 PASS
 - `ko-02-decision.wav`: 23.52초, 결정 1개, 근거 ID 검증 PASS

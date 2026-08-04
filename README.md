@@ -100,9 +100,9 @@ A6 스마트 라우터는 판매자에 따라 OpenAI 호환 기능 지원 범위
 - 호스팅: Google Cloud Run 서울 리전
 - 공개 맞춤 주소: `https://minutemark.yozm.dev`
 - 리소스: 2 vCPU, 4 GiB, 동시 처리 1, 최소 0
-- V2 최초 공개 배포 버전: `minutemark-00012-luh`
-- 현재 공개 원본 배포 버전: `minutemark-00014-cah`, main `8211435…`
-- 복구용 V1 배포 버전: `minutemark-00007-w6c`
+- V2 최초 공개 revision(배포 버전): `minutemark-00012-luh`
+- 현재 공개 원본 revision(배포 버전): `minutemark-00014-cah`, main `8211435…`
+- 복구용 V1 revision(배포 버전): `minutemark-00007-w6c`
 - 이미지 digest:
   `sha256:09686b8d9d69bb5f1791b6eec3a2718dc5a4ad96344018fc66febd1b40a2ee2e`
 
@@ -193,7 +193,7 @@ GitHub `main`이 배포 기준입니다. `main`에 병합하면 Cloud Build가
 1. Docker 이미지 빌드
 2. 회귀 테스트 48개
 3. Git 커밋 SHA로 이미지 태그 후 Artifact Registry에 push
-4. Cloud Run `minutemark`에 트래픽 0% 후보 배포 버전으로 배포
+4. Cloud Run `minutemark`에 트래픽 0% 후보 revision(배포 버전)으로 배포
 
 후보 URL의 `/api/health`와 실제 사용자 QA가 통과한 뒤에만 트래픽을 전환합니다.
 배포 명령은 Secret Manager의 `minutemark-a6-api-key` 버전 `1`, 전용
