@@ -276,6 +276,77 @@ class MeetingOwnershipTest(unittest.TestCase):
 
 
 class AuthenticatedUploadRouteTest(unittest.IsolatedAsyncioTestCase):
+    async def test_chunked_body_within_limit_remains_compatible(self):
+        boundary = "boundary"
+        body = b"".join(
+            [
+                (
+                    f"--{boundary}\r\n"
+                    'Content-Disposition: form-data; name="audio"; filename="meeting.wav"\r\n'
+                    "Content-Type: audio/wav\r\n\r\naudio\r\n"
+                ).encode(),
+                (
+                    f"--{boundary}\r\n"
+                    'Content-Disposition: form-data; name="title"\r\n\r\n'
+                    "제품 회의\r\n"
+                ).encode(),
+                (
+                    f"--{boundary}\r\n"
+                    'Content-Disposition: form-data; name="participant_notice_confirmed"\r\n\r\n'
+                    "true\r\n"
+                ).encode(),
+                f"--{boundary}--\r\n".encode(),
+            ]
+        )
+        messages = [{"type": "http.request", "body": body, "more_body": False}]
+
+        async def receive():
+            return messages.pop(0)
+
+        request = Request(
+            {
+                "type": "http",
+                "method": "POST",
+                "path": "/api/meetings",
+                "headers": [
+                    (
+                        b"content-type",
+                        f"multipart/form-data; boundary={boundary}".encode(),
+                    )
+                ],
+            },
+            receive,
+        )
+        store = Mock()
+        store.count.return_value = 0
+        store.create.return_value = {"id": "meeting-a", "title": "제품 회의"}
+        created_files = []
+        real_spooled_file = tempfile.SpooledTemporaryFile
+
+        def tracked_spooled_file(*args, **kwargs):
+            file = real_spooled_file(*args, **kwargs)
+            created_files.append(file)
+            return file
+
+        with (
+            patch(
+                "app.authenticated_user",
+                return_value=members.AuthUser("user-a", "", int(time.time())),
+            ),
+            patch("app.get_meeting_store", return_value=store),
+            patch("app.analyze_audio", return_value={"segments": []}),
+            patch(
+                "starlette.formparsers.SpooledTemporaryFile",
+                side_effect=tracked_spooled_file,
+            ),
+        ):
+            result = await app.create_meeting(request)
+
+        self.assertEqual(result, {"id": "meeting-a", "title": "제품 회의"})
+        store.create.assert_called_once()
+        self.assertTrue(created_files)
+        self.assertTrue(all(file.closed for file in created_files))
+
     async def test_chunked_oversized_body_is_rejected_before_form_completes(self):
         boundary = "boundary"
         first_chunk = (
