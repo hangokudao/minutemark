@@ -3,6 +3,8 @@
 > 기준일: 2026-08-04
 > 작업 브랜치: `codex/redesign-v1` · 검증한 코드 후보 `48a5fda…` ·
 > 최초 공개 merge commit `48b76d2cfd85aad3703fdfe4bacf67d8246e8095`
+> 현재 공개 main `82114351968a726cef03b67a8cb9b1fb13d68f60` ·
+> 맞춤 주소 `https://minutemark.yozm.dev`
 > 단계: `RELEASED`
 > 이 문서가 V2.1의 활성 범위·검증·출시 판단 기록이다.
 
@@ -231,6 +233,36 @@ gcloud run services update-traffic minutemark \
   수행했으므로 공개 전환 뒤에는 비파괴 스모크만 반복했다.
 - 복구 대상 V1은 `minutemark-00007-w6c`이며 전환 뒤 복구는 필요하지 않았다.
 
+### 맞춤 주소 Firebase 연결과 후속 QA
+
+- 공개 맞춤 주소 `https://minutemark.yozm.dev`는 Cloudflare Worker가 같은 Cloud Run
+  서비스로 요청을 전달한다. 확인 시점의 원본은 main `8211435…`를 실행하는
+  `minutemark-00014-cah`이며 공개 트래픽 100%를 처리했다.
+- Firebase Authentication 승인 도메인과 Firebase 브라우저 API 키의 허용 주소는
+  서로 다른 설정이므로 두 곳에 맞춤 주소를 각각 추가했다. 기존 항목은 5개에서
+  6개가 되었고 API 대상 제한 26개는 그대로 보존했다. API 키와 OAuth token 값은
+  출력하거나 저장소 문서에 기록하지 않았다.
+- Cloudflare 캐시는 `minutemark.yozm.dev` 호스트만 대상으로 갱신했다. 다른
+  hostname과 `yozm.dev` 전체 캐시는 건드리지 않았다. 이어 Windows Chrome에서
+  강력 새로고침을 수행해 V2 화면을 확인했다.
+- Windows Chrome 브리지에서 1440×900으로 실제 Google 로그인을 완료하고, 제목
+  `맞춤 주소 QA 2026-08-04`와 공개 데모 오디오를 한 번만 분석·저장했다. 상세의
+  결과와 오디오, 새로고침 복원, 목록 표시가 모두 정상이고 console error·warning은
+  0건이었다.
+- 같은 로그인 상태를 390×844로 확인했다. 회의 목록·새 회의·모바일 메뉴·상세
+  결과·오디오가 보였고 가로 넘침이 없었다. 본문 캡처는 Windows Temp의
+  `minutemark-custom-qa-desktop-detail.png`,
+  `minutemark-custom-qa-mobile-detail.png`에 남겼다.
+- 방금 만든 QA 회의만 확인 대화상자를 거쳐 삭제했다. 목록에서 사라지고 이전
+  상세에는 `회의를 찾을 수 없습니다.`가 표시됐다. 이어 같은 제목의 Firestore
+  문서 0건과 사용자 Storage 경로 객체 0건을 독립적으로 읽어 확인했다. 계정과
+  다른 회의는 삭제하지 않았다.
+- 보안상 맞춤 주소는 Firebase 로그인을 시작할 수 있는 허용 origin 하나를 늘린다.
+  서버 secret이나 저장 데이터가 공개되는 변경은 아니다. 도메인은 이 프로젝트가
+  관리하며, 서버의 Firebase ID token 검증과 사용자별 소유권 검사는 그대로다.
+  저장소에는 공개 주소와 검증 결과만 기록하고 API 키 값·계정 이메일·UID·cookie·
+  token·회의 ID는 기록하지 않는다.
+
 ## 9. 이전 실행 증거
 
 아래 내용은 `0170848`까지의 이전 실행 기록이며, 이번 변경분 검증 결과로 재사용하지
@@ -318,6 +350,7 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
 | 실제 회원 저장·재열람·회의 삭제 | `PASS` | 실제 분석 1회, 상세 복원, 모바일 삭제, Firestore·Storage 0건 |
 | 교차 사용자·계정 탈퇴 QA | `PASS` | B에서 A 목록 비노출·직접 주소 not-found, B 탈퇴 뒤 Firestore·Storage·Auth 부재 확인 |
 | `main` 병합·공개 V2 | `PASS` | V2 100%, 공개 health·샘플·privacy·auth·데스크톱·모바일 스모크 통과 |
+| 맞춤 주소 Firebase 연결·실사용 QA | `PASS` | Firebase 두 허용 목록, 호스트 캐시 갱신, 로그인·저장·모바일·삭제·저장소 0건 |
 
 리뷰에서 발견한 보조 Spec의 QA 정책 충돌은 현재 정본에 맞게 수정했고, 없는 회의와
 다른 사용자 회의의 `DELETE`가 동일하게 404를 반환하도록 계약과 구현을 맞췄다.
