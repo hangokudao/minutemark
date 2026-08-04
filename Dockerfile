@@ -19,6 +19,9 @@ WORKDIR /app
 COPY pipeline.py /app/pipeline.py
 COPY members.py /app/members.py
 COPY app.py /app/app.py
+COPY download-korean-regression.py /download-korean-regression.py
+COPY korean-sample-manifest.json /korean-sample-manifest.json
+RUN chmod 644 /download-korean-regression.py /korean-sample-manifest.json
 COPY static /app/static
 COPY samples/korean /app/samples/korean
 COPY ami-samples.tsv /app/ami-samples.tsv
