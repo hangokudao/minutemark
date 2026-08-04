@@ -2,7 +2,7 @@
 
 > 기준일: 2026-08-04
 > 작업 브랜치: `codex/redesign-v1` · 검증한 코드 후보 commit `48a5fda14b5b68436bc6819d0b98185ab1be9729`
-> 단계: `RELEASE_CANDIDATE · IN_PROGRESS`
+> 단계: `RELEASED`
 > 이 문서가 V2.1의 활성 범위·검증·출시 판단 기록이다.
 
 ## 1. 이번 버전의 결정
@@ -65,7 +65,7 @@ V2.1은 인증 체계를 다시 만드는 버전이 아니다. 이미 구현한 
 | 회원가입 UI | 회원 기능을 켠 독립 후보의 `/auth` | 가입 안내와 Google 버튼 표시 | `PASS` · 실제 0% 후보에서 표시·새로고침 확인 |
 | 개인정보 고지 | 공개 privacy 화면과 실제 데이터 흐름 | 문의처·수집·저장·외부 AI 전송 설명 일치 | `PASS` · 확정 문구 계약 테스트와 배포 후보 화면 확인 |
 | A6 외부 처리 | 포트폴리오 한계·전사문 전송·미확인 조건 고지 | 민감정보 업로드 금지와 확인 범위를 모든 사용자가 알 수 있음 | `PASS` · `/samples`·`/privacy`에서 확정 문구 확인 |
-| 배포·복구 | 후보 commit·runtime·기존 V1 | 후보 검증 성공, V1 유지·rollback 가능 | `BLOCKED` · 0% 후보 QA 통과, 최종 문서 commit·PR 병합·공개 전환 대기 |
+| 배포·복구 | 후보 commit·runtime·기존 V1 | 후보 검증 성공, V1 유지·rollback 가능 | `PASS` · main `48b76d2…`, V2 `minutemark-00012-luh` 100%, V1 복구 절차 유지 |
 
 필수 행에 `FAIL` 또는 `BLOCKED`가 있으면 V2.1을 공개 배포하지 않는다. 기존 V1
 트래픽은 그대로 유지한다.
@@ -214,6 +214,22 @@ gcloud run services update-traffic minutemark \
   확인했다. 계정 A 자체는 유지했다.
 - 위 브라우저 캡처는 Chrome 실행 안의 inline 증거만 있으며 로컬 저장 경로는 없다.
 
+### main 병합과 공개 배포
+
+- GitHub 계정 `hangokudao`의 PR #5를 `main`에 병합했다. 최초 공개 시점의 merge
+  commit과 원격 `main`은 `48b76d2cfd85aad3703fdfe4bacf67d8246e8095`로 일치했다.
+- Cloud Build `3d1afa6a-a0dd-418e-b529-8ae46b61430a`의 Docker build, test,
+  image push, 0% deploy 단계가 모두 `SUCCESS`로 끝났다.
+- main SHA의 0% 리비전 `minutemark-00012-luh`에서 `/api/health` 200과 같은 commit,
+  `/samples`·`/privacy`·`/auth` 200, `/docs` 404, 보안 헤더를 확인했다.
+- 이후 `minutemark-00012-luh`로 공개 트래픽을 100% 전환했다. 실제 공개 주소의
+  `/api/health`는 같은 main commit을 반환했다.
+- Windows Chrome에서 공개 주소를 1440×900·390×844로 확인했다. 공개 샘플,
+  privacy, Google 계정 선택 진입, 모바일 메뉴, 가로 넘침 없음, console error·warn
+  0건이 모두 `PASS`였다. 로그인 완료·분석·삭제는 이미 같은 코드의 0% 후보에서
+  수행했으므로 공개 전환 뒤에는 비파괴 스모크만 반복했다.
+- 복구 대상 V1은 `minutemark-00007-w6c`이며 전환 뒤 복구는 필요하지 않았다.
+
 ## 9. 이전 실행 증거
 
 아래 내용은 `0170848`까지의 이전 실행 기록이며, 이번 변경분 검증 결과로 재사용하지
@@ -294,12 +310,12 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
 | 의존성·보안 점검 | `PASS` | `pip check` 0, `pip-audit` 0, 404·401·`no-store`·보안 헤더 |
 | Spec 리뷰 | `PASS` | 보조 Spec 충돌과 DELETE 404 계약 보완, 48/48 재통과 |
 | Standards/보안 리뷰 | `PASS` | P0/P1 코드 결함 0, 복구 절차 누락 보완 |
-| GitHub PR | `OPEN` | PR #5 CLEAN·MERGEABLE; 최종 QA 기록 commit과 0% 후보 재확인 뒤 병합 |
-| Cloud Run 0% 후보 | `PASS` | `minutemark-00010-wix`, health commit `48a5fda…`, 트래픽 0% |
+| GitHub PR | `PASS` | PR #5 MERGED, merge commit과 원격 main `48b76d2…` 일치 |
+| Cloud Run 0% 후보 | `PASS` | main `48b76d2…`의 `minutemark-00012-luh`, health commit 일치 후 전환 |
 | 배포 후보 공개 브라우저 QA | `PASS` | 1440×900·390×844 공개 화면과 Google 계정 선택 경계 |
 | 실제 회원 저장·재열람·회의 삭제 | `PASS` | 실제 분석 1회, 상세 복원, 모바일 삭제, Firestore·Storage 0건 |
 | 교차 사용자·계정 탈퇴 QA | `PASS` | B에서 A 목록 비노출·직접 주소 not-found, B 탈퇴 뒤 Firestore·Storage·Auth 부재 확인 |
-| `main` 병합·공개 V2 | `BLOCKED` | 최종 QA 기록 commit·0% 후보 재배포·PR 병합 뒤에만 진행 |
+| `main` 병합·공개 V2 | `PASS` | V2 100%, 공개 health·샘플·privacy·auth·데스크톱·모바일 스모크 통과 |
 
 리뷰에서 발견한 보조 Spec의 QA 정책 충돌은 현재 정본에 맞게 수정했고, 없는 회의와
 다른 사용자 회의의 `DELETE`가 동일하게 404를 반환하도록 계약과 구현을 맞췄다.
