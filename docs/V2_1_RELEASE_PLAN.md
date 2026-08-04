@@ -1,7 +1,8 @@
 # MinuteMark V2.1 버전업 실행 기록
 
 > 기준일: 2026-08-04
-> 작업 브랜치: `codex/redesign-v1` · 검증한 코드 후보 commit `48a5fda14b5b68436bc6819d0b98185ab1be9729`
+> 작업 브랜치: `codex/redesign-v1` · 검증한 코드 후보 `48a5fda…` ·
+> 최초 공개 merge commit `48b76d2cfd85aad3703fdfe4bacf67d8246e8095`
 > 단계: `RELEASED`
 > 이 문서가 V2.1의 활성 범위·검증·출시 판단 기록이다.
 
@@ -308,8 +309,9 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
 | 확정 문구·버전업 규칙 | `PASS` | 업로드·privacy 계약 테스트와 `AGENTS.md`·README 연결 |
 | 전체 자동 테스트·Docker 빌드 | `PASS` | 48/48, image `025ea4c2…`, 비루트 `minutemark` |
 | 의존성·보안 점검 | `PASS` | `pip check` 0, `pip-audit` 0, 404·401·`no-store`·보안 헤더 |
-| Spec 리뷰 | `PASS` | 보조 Spec 충돌과 DELETE 404 계약 보완, 48/48 재통과 |
-| Standards/보안 리뷰 | `PASS` | P0/P1 코드 결함 0, 복구 절차 누락 보완 |
+| PR #5 Spec 리뷰 | `PASS` | 보조 Spec 충돌과 DELETE 404 계약 보완, 48/48 재통과 |
+| PR #5 Standards/보안 리뷰 | `PASS` | P0/P1 코드 결함 0, 복구 절차 누락 보완 |
+| PR #6 출시 문서 Spec·Standards 리뷰 | `PASS` | 상태 충돌·표 열·commit·리뷰 범위 수정 뒤 두 축 재검토, 추가 finding 0건 |
 | GitHub PR | `PASS` | PR #5 MERGED, merge commit과 원격 main `48b76d2…` 일치 |
 | Cloud Run 0% 후보 | `PASS` | main `48b76d2…`의 `minutemark-00012-luh`, health commit 일치 후 전환 |
 | 배포 후보 공개 브라우저 QA | `PASS` | 1440×900·390×844 공개 화면과 Google 계정 선택 경계 |
