@@ -37,27 +37,62 @@ docker compose run --rm sample-downloader
 공개 영어 회의 세트는 기술 경로를 통과했다. 이후 아래 공개된 자연 발화(사람이 실제로
 자연스럽게 한 말) 샘플 2개로 제품 품질의 최종 GO 판정도 완료했다.
 
-## 한국어 최종 샘플 2개
+## 공개 한국어 샘플 10개 (2026-08-05)
 
-두 원본은 KMSAV 목록에 등재되어 있으며 조사 시점에 YouTube 메타데이터의
-`Creative Commons Attribution license (reuse allowed)`를 확인했다. 전체
-영상을 재배포하지 않고 판정에 필요한 구간만 16 kHz mono WAV로 변환했다.
+제품 공개 샘플은 정확히 10개다. 기존 제품 GO 샘플 2개(`ko-01`, `ko-02`)를
+유지하고, MM-PUBLIC-AUDIT에서 선정한 회귀 후보 8개(`kmsav-01/03/04/05/06/07/08/10`)를
+`samples/korean/`에 넣었다. 제외된 `kmsav-02`(예능 카톡 말투)·`kmsav-09`(집회·음악
+구간)는 공개 번들에 포함하지 않는다.
+
+두 원본 GO 샘플은 조사 시점에 YouTube 메타데이터의
+`Creative Commons Attribution license (reuse allowed)`를 확인했다. 추가 8개도
+2026-08-05에 동일 라이선스·`public`·한국어를 재확인했다. 전체 영상을 재배포하지
+않고 필요한 구간만 16 kHz mono WAV로 변환했다.
 
 | 로컬 파일 | 원본·저작자 | 라이선스·가공 | 사용 구간 | 검증 목적 |
 |---|---|---|---:|---|
 | `ko-01-action.wav` | [[생방송] 이재명 당대표 주재 더불어민주당 최고위원회의](https://www.youtube.com/watch?v=-WZ18GPkDJg) · 시사발전소 현장LIVE | [YouTube Creative Commons Attribution (CC BY)](https://support.google.com/youtube/answer/2797468) · 34초 발췌, 16 kHz mono WAV 변환 | 2058–2092초 | 구체적인 후속 작업 추출 |
 | `ko-02-decision.wav` | [[충북 시사토론 창] 위기의 KTX 오송역, 대응방안은?](https://www.youtube.com/watch?v=Nm0lLy1crg0) · 안녕!MBC충북 | [YouTube Creative Commons Attribution (CC BY)](https://support.google.com/youtube/answer/2797468) · 34초 발췌, 16 kHz mono WAV 변환 | 814–848초 | 이미 합의된 결정 추출 |
+| `kmsav-01-07zhNSvDR0A.wav` | [여수MBC토론 - 시사데스크](https://www.youtube.com/watch?v=07zhNSvDR0A) · GS칼텍스 예울마루 | [KMSAV CC BY-NC-SA 4.0](https://github.com/etri/kmsav) + 원본 CC BY · 60초 발췌, 16 kHz mono WAV | 211–271초 | 다화자 시사 토론 강건성 |
+| `kmsav-03-9g6USDTbGhg.wav` | [[피플인사이드] 장만채 전남도 교육감](https://www.youtube.com/watch?v=9g6USDTbGhg) · KBC 콘텐츠 | [KMSAV CC BY-NC-SA 4.0](https://github.com/etri/kmsav) + 원본 CC BY · 60초 발췌, 16 kHz mono WAV | 263–323초 | 공식 인터뷰 ASR |
+| `kmsav-04-0e76Mv3YWso.wav` | [치매를 미리 예방할 수 있을까?](https://www.youtube.com/watch?v=0e76Mv3YWso) · 카오스 사이언스 | [KMSAV CC BY-NC-SA 4.0](https://github.com/etri/kmsav) + 원본 CC BY · 60초 발췌, 16 kHz mono WAV | 366–426초 | 과학 전문용어 ASR |
+| `kmsav-05-3uuLmiV-HNI.wav` | [뇌를 조작해서 포만감을…](https://www.youtube.com/watch?v=3uuLmiV-HNI) · 카오스 사이언스 | [KMSAV CC BY-NC-SA 4.0](https://github.com/etri/kmsav) + 원본 CC BY · 60초 발췌, 16 kHz mono WAV | 158–218초 | 연구 설명 질의응답 |
+| `kmsav-06-0FzNHep2onE.wav` | [4.15 부정선거 시사대담…](https://www.youtube.com/watch?v=0FzNHep2onE) · 공병호TV | [KMSAV CC BY-NC-SA 4.0](https://github.com/etri/kmsav) + 원본 CC BY · 60초 발췌, 16 kHz mono WAV | 548–608초 | 다화자 시사 대담 |
+| `kmsav-07-9h7CCmpcirA.wav` | [[자치분권대학 특강] 똑똑, 자치분권입니다 5화](https://www.youtube.com/watch?v=9h7CCmpcirA) · 젬비씨 JEMBC | [KMSAV CC BY-NC-SA 4.0](https://github.com/etri/kmsav) + 원본 CC BY · 60초 발췌, 16 kHz mono WAV | 1408–1468초 | 공공 정책 특강 |
+| `kmsav-08-9vY0YzdjoMU.wav` | [김만배, 현직기자가…](https://www.youtube.com/watch?v=9vY0YzdjoMU) · 김성수TV 성수대로 | [KMSAV CC BY-NC-SA 4.0](https://github.com/etri/kmsav) + 원본 CC BY · 60초 발췌, 16 kHz mono WAV | 579–639초 | 빠른 다화자 토크 |
+| `kmsav-10-9bTYC7hkWAI.wav` | [가우스도 놀란 리만의 강의는?](https://www.youtube.com/watch?v=9bTYC7hkWAI) · 카오스 사이언스 | [KMSAV CC BY-NC-SA 4.0](https://github.com/etri/kmsav) + 원본 CC BY · 60초 발췌, 16 kHz mono WAV | 436–496초 | 수학 전문용어 ASR |
 
-위 두 WAV는 원본 영상의 CC BY 조건을 따르며 루트 `LICENSE`의 MIT 적용
-대상이 아니다. KMSAV 목록은 원본을 찾는 데만 사용했고, 저작자·출처·라이선스와
-발췌·포맷 변환 사실은 위 표와 공개 앱 결과 화면에 함께 표시한다.
+위 WAV는 원본 영상의 CC BY 조건을 따르며 루트 `LICENSE`의 MIT 적용 대상이
+아니다. 추가 8개는 KMSAV 목록으로 원본을 찾았고, 데이터셋 조건
+`CC BY-NC-SA 4.0`과 원본 CC BY·저작자·출처·발췌·포맷 변환 사실을 앱 결과
+화면에 함께 표시한다.
 
-실제 결과:
+### 제품 GO 샘플 2개 — 기존 라이브 Cloud Run 증거
 
-- `ko-01-action.wav`: 25.47초, 결정 1개·할 일 1개, 근거 PASS
-- `ko-02-decision.wav`: 23.52초, 결정 1개, 근거 PASS
+아래는 **이미 공개 배포 경로에서 확인된** 제품 GO 결과다. 이번 10개 확장 작업의
+로컬 재분석이 아니다.
+
+- `ko-01-action.wav`: 처리 25.47초, 결정 1개·할 일 1개, 근거 PASS
+- `ko-02-decision.wav`: 처리 23.52초, 결정 1개, 근거 PASS
 - 총 예상 A6API 비용: `$0.00007391`
-- 자동 게이트 2/2, 수동 의미 대조 2/2
+- 자동 게이트 2/2, 수동 의미 대조 2/2, Cloud Run POST 200
+
+### 추가 8개 — 2026-08-05 로컬 의미 게이트 (신규 분석)
+
+추가 8개는 **로컬 Docker**에서 faster-whisper/small STT + 제품 A6 추출을 샘플당
+1회씩 돌린 결과다(외부 A6 호출 8/8). 라이브 Cloud Run 재검증이 아니다.
+결정·할 일 0건은 회의 정답 세트가 아닌 강건성 샘플로 허용한다.
+
+| ID | STT 구간 | 한글 글자 수 | 결정 | 할 일 | grounding | 예상 비용(USD) | 결과 |
+|---|---:|---:|---:|---:|---|---:|---|
+| kmsav-01 | 10 | 278 | 0 | 0 | valid | 0.00002768 | PASS |
+| kmsav-03 | 14 | 311 | 0 | 0 | valid | 0.00002820 | PASS |
+| kmsav-04 | 22 | 357 | 0 | 0 | valid | 0.00002926 | PASS |
+| kmsav-05 | 10 | 306 | 0 | 0 | valid | 0.00002775 | PASS |
+| kmsav-06 | 13 | 288 | 0 | 0 | valid | 0.00002804 | PASS |
+| kmsav-07 | 14 | 262 | 0 | 0 | valid | 0.00002819 | PASS |
+| kmsav-08 | 21 | 335 | 0 | 0 | valid | 0.00002921 | PASS |
+| kmsav-10 | 14 | 321 | 0 | 0 | valid | 0.00002836 | PASS |
 
 ## 한국어 보조 후보 KMSAV
 

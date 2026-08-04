@@ -48,7 +48,7 @@ flowchart LR
 ## 핵심 기능
 
 - WAV, MP3, M4A, OGG, FLAC, WEBM 업로드
-- 실제 공개 한국어 회의 샘플 2개
+- 한국어 공개 발화 샘플 10개 세트(`ko-01`·`ko-02` + 선정 KMSAV 8개). 라이브 Cloud Run에서 분석이 확인된 것은 기존 2개이며, 추가 8개는 로컬 sample-tools Docker 검증만 했고 아직 배포되지 않았다
 - `faster-whisper/small`의 시간 정보가 붙은 음성 기록
 - A6API `gpt-5.6-luna`의 결정·할 일 추출
 - 실제 음성 기록에 있는 구간만 허용하는 서버 검증
@@ -74,9 +74,11 @@ flowchart LR
 | KTX 노선 변경 결정 | 35.94초 | 음성 기록 13구간, 결정 1개 | 인용 구간 → 약 0.92초 | $0.00010337 |
 | 직접 WAV 업로드 | 34.90초 | 음성 기록 13구간, 결정 1개 | S1 → 약 0.40초 | $0.00010985 |
 
-두 공개 샘플은 Cloud Run 로그에서 HTTP 200을 확인했습니다. 직접 WAV 업로드도
-Windows Chrome에서 실제 결과와 오디오 이동을 확인했으며, 모든 결과의 근거
-구간이 실제 음성 기록에 존재했습니다.
+기존 공개 샘플 2개(`ko-01`·`ko-02`)는 라이브 Cloud Run 분석 요청의
+HTTP POST 200으로 확인했습니다. 2026-08-05에 추가한 KMSAV 8개는 로컬
+sample-tools Docker에서 STT·제품 분석을 검증했으며, 라이브 Cloud Run에
+배포·재검증한 증거가 아닙니다. 직접 WAV 업로드는 Windows Chrome에서 실제
+결과와 오디오 이동을 확인했고, 근거 구간이 실제 음성 기록에 존재했습니다.
 
 ## 장애를 제품 동작으로 바꾼 과정
 
@@ -124,7 +126,8 @@ A6API 토큰 `local-meeting-notes-mvp`의 총한도는 $1.00으로 설정했습�
 | 검증 | 상태 | 증거 |
 | --- | --- | --- |
 | Windows Chrome 데스크톱 1440×900 | PASS | 겹침·잘림·비의도적 가로 스크롤 없음 |
-| 공개 샘플 2개 실제 분석 | PASS | 화면 결과와 Cloud Run POST 200 |
+| 기존 공개 샘플 2개 실제 분석 | PASS | `ko-01`·`ko-02` 화면 결과와 라이브 Cloud Run POST 200 |
+| 추가 KMSAV 8개 로컬 검증 | PASS | sample-tools Docker 로컬 STT·A6 게이트 8/8; 라이브 미배포 |
 | 근거 듣기 | PASS | 재생 위치 이동과 해당 음성 기록 강조 |
 | 모바일 390×844 랜딩 | PASS | 격리 headless Chrome fallback |
 | WAV 파일 업로드 | PASS | 실제 34.90초 분석과 근거 이동 확인 |
@@ -181,7 +184,7 @@ docker compose run --rm -v ./tests:/tests:ro --entrypoint python web \
 현재 기존 분석 회귀와 Firebase token 검증, 인증 전 body 차단, 사용자 소유권,
 저장 한도, 객체 generation 고정, 삭제되지 않고 남은 객체 정리, 실패 뒤 남은 오디오 삭제, 콘텐츠부터 지우는 탈퇴,
 라우팅·모바일 메뉴·draft 경고·개인 요청 취소·Google 전용 인증과 문의처 계약을
-포함한 총 48개가 통과합니다.
+포함한 회귀 테스트가 통과합니다.
 최종 이미지의 `pip-audit`도 알려진
 취약점 0건입니다.
 

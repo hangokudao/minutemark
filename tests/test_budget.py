@@ -57,12 +57,21 @@ class MonthlyBudgetTest(unittest.TestCase):
 
 class AudioInputTest(unittest.IsolatedAsyncioTestCase):
     def test_public_korean_sample_is_within_duration_limit(self):
-        duration = app.audio_duration_seconds(
-            Path("/samples/korean/ko-01-action.wav")
-        )
+        sample_path = Path(app.KOREAN_SAMPLE_DIR) / "ko-01-action.wav"
+        duration = app.audio_duration_seconds(sample_path)
 
         self.assertAlmostEqual(duration, 34.0, delta=0.2)
         self.assertLessEqual(duration, app.MAX_AUDIO_DURATION_SECONDS)
+
+        for sample in app.SAMPLES.values():
+            path = Path(app.KOREAN_SAMPLE_DIR) / sample["filename"]
+            sample_duration = app.audio_duration_seconds(path)
+            self.assertIsNotNone(sample_duration)
+            self.assertGreater(sample_duration, 0)
+            self.assertLessEqual(sample_duration, app.MAX_AUDIO_DURATION_SECONDS)
+            self.assertAlmostEqual(
+                sample_duration, float(sample["duration_seconds"]), delta=1.0
+            )
 
     async def test_invalid_audio_hides_decoder_details(self):
         audio = app.UploadFile(
@@ -134,14 +143,76 @@ class AudioInputTest(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("/tmp", raised.exception.detail)
 
     def test_public_samples_include_complete_attribution(self):
-        for sample in app.SAMPLES.values():
+        for sample_id, sample in app.SAMPLES.items():
             self.assertTrue(sample["author"])
-            self.assertEqual(
-                sample["license"],
-                "Creative Commons Attribution (CC BY)",
-            )
             self.assertTrue(sample["license_url"].startswith("https://"))
             self.assertIn("WAV 변환", sample["modification"])
+            self.assertIn("duration_seconds", sample)
+            self.assertGreater(sample["duration_seconds"], 0)
+            if sample_id in {"action", "decision"}:
+                self.assertEqual(
+                    sample["license"],
+                    "Creative Commons Attribution (CC BY)",
+                )
+
+    def test_kmsav_public_samples_expose_both_license_conditions(self):
+        kmsav_ids = {
+            "kmsav-01",
+            "kmsav-03",
+            "kmsav-04",
+            "kmsav-05",
+            "kmsav-06",
+            "kmsav-07",
+            "kmsav-08",
+            "kmsav-10",
+        }
+        for sample_id in kmsav_ids:
+            sample = app.SAMPLES[sample_id]
+            self.assertIn("CC BY-NC-SA 4.0", sample["license"])
+            self.assertIn("CC BY", sample["license"])
+            self.assertEqual(sample["license_url"], "https://github.com/etri/kmsav")
+
+    def test_public_samples_are_exactly_ten_selected_files(self):
+        expected_ids = {
+            "action",
+            "decision",
+            "kmsav-01",
+            "kmsav-03",
+            "kmsav-04",
+            "kmsav-05",
+            "kmsav-06",
+            "kmsav-07",
+            "kmsav-08",
+            "kmsav-10",
+        }
+        expected_files = {
+            "ko-01-action.wav",
+            "ko-02-decision.wav",
+            "kmsav-01-07zhNSvDR0A.wav",
+            "kmsav-03-9g6USDTbGhg.wav",
+            "kmsav-04-0e76Mv3YWso.wav",
+            "kmsav-05-3uuLmiV-HNI.wav",
+            "kmsav-06-0FzNHep2onE.wav",
+            "kmsav-07-9h7CCmpcirA.wav",
+            "kmsav-08-9vY0YzdjoMU.wav",
+            "kmsav-10-9bTYC7hkWAI.wav",
+        }
+        forbidden_files = {
+            "kmsav-02-ySffCRdGl8.wav",
+            "kmsav-09-0rj144h8MeE.wav",
+        }
+
+        self.assertEqual(set(app.SAMPLES), expected_ids)
+        self.assertEqual(len(app.SAMPLES), 10)
+        filenames = {sample["filename"] for sample in app.SAMPLES.values()}
+        self.assertEqual(filenames, expected_files)
+        self.assertTrue(filenames.isdisjoint(forbidden_files))
+
+        sample_dir = Path(app.KOREAN_SAMPLE_DIR)
+        if sample_dir.is_dir():
+            on_disk = {path.name for path in sample_dir.glob("*.wav")}
+            self.assertEqual(on_disk, expected_files)
+            self.assertTrue(on_disk.isdisjoint(forbidden_files))
 
 
 class PublicSampleCacheTest(unittest.TestCase):

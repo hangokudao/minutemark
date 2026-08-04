@@ -453,6 +453,13 @@ async function analyzeUpload(file) {
   }
 }
 
+function sampleDurationLabel(sample) {
+  if (!sample?.available) return "파일 없음";
+  const seconds = Number(sample.duration_seconds);
+  if (!Number.isFinite(seconds) || seconds <= 0) return "공개 결과";
+  return `약 ${Math.round(seconds)}초 · 공개 결과`;
+}
+
 function renderSamples(samples) {
   elements.sampleList.innerHTML = samples
     .map(
@@ -460,7 +467,7 @@ function renderSamples(samples) {
         <button class="sample-button" type="button" data-sample-id="${escapeHtml(sample.id)}" ${sample.available ? "" : "disabled"}>
           <span class="sample-topline">
             <strong>${escapeHtml(sample.title)}</strong>
-            <span class="sample-duration">${sample.available ? "약 34초 · 공개 결과" : "파일 없음"}</span>
+            <span class="sample-duration">${escapeHtml(sampleDurationLabel(sample))}</span>
           </span>
           <p>${escapeHtml(sample.description)}</p>
           <span class="sample-source">${escapeHtml(sample.source_title)}</span>
