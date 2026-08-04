@@ -22,6 +22,13 @@ services:
       MAX_ANALYSES_PER_INSTANCE: ${MAX_ANALYSES_PER_INSTANCE:-0}
       BUDGET_DB: /data/budget.sqlite3
       BUDGET_PERSISTENCE: persistent
+      MEMBER_FEATURES_ENABLED: ${MEMBER_FEATURES_ENABLED:-false}
+      PERSISTENT_SAMPLE_CACHE_ENABLED: ${PERSISTENT_SAMPLE_CACHE_ENABLED:-false}
+      MAX_TOTAL_AUDIO_BYTES: ${MAX_TOTAL_AUDIO_BYTES:-536870912}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-minutemark-portfolio}
+      GOOGLE_CLOUD_QUOTA_PROJECT: ${FIREBASE_PROJECT_ID:-minutemark-portfolio}
+      MEETING_AUDIO_BUCKET: ${MEETING_AUDIO_BUCKET:-minutemark-portfolio-meetings}
+      RUNTIME_SERVICE_ACCOUNT: ${RUNTIME_SERVICE_ACCOUNT:-minutemark-runtime@minutemark-portfolio.iam.gserviceaccount.com}
     ports:
       - "8000:8000"
     volumes:

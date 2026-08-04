@@ -10,7 +10,16 @@ PROJECT_ID=$1
 SERVICE_NAME=${2:-minutemark}
 REGION=${3:-asia-northeast3}
 SECRET_NAME=minutemark-a6-api-key
-DEPLOY_COMMIT=$(git rev-parse HEAD 2>/dev/null || printf manual)
+RUNTIME_SERVICE_ACCOUNT="minutemark-runtime@${PROJECT_ID}.iam.gserviceaccount.com"
+
+if [ -n "$(git status --porcelain)" ]; then
+  echo "작업 트리에 커밋되지 않은 변경이 있어 배포를 중단합니다." >&2
+  echo "검증한 변경을 먼저 커밋한 뒤 다시 실행하세요." >&2
+  exit 2
+fi
+
+DEPLOY_COMMIT=$(git rev-parse HEAD)
+DEPLOY_COMMIT_SHORT=$(git rev-parse --short=7 HEAD)
 
 ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format='value(account)' | head -n 1)
 if [ -z "$ACCOUNT" ]; then
@@ -41,5 +50,9 @@ gcloud run deploy "$SERVICE_NAME" \
   --min 0 \
   --max 1 \
   --timeout 180 \
-  --set-env-vars "APP_COMMIT_SHA=${DEPLOY_COMMIT},A6_API_BASE=https://api.a6api.com/v1,A6_MODEL=gpt-5.6-luna,A6_VENDOR_ID=1729,A6_INPUT_USD_PER_M=0.005256,A6_OUTPUT_USD_PER_M=0.0315,A6_RUN_BUDGET_USD=1.0,A6_REQUEST_RESERVE_USD=0.01,A6_REQUEST_TIMEOUT_SECONDS=60,WHISPER_LANGUAGE=auto,MAX_AUDIO_DURATION_SECONDS=120,MAX_ANALYSES_PER_INSTANCE=50,BUDGET_PERSISTENCE=ephemeral" \
-  --set-secrets "A6_API_KEY=${SECRET_NAME}:latest"
+  --service-account "${RUNTIME_SERVICE_ACCOUNT}" \
+  --no-traffic \
+  --tag v2-rc \
+  --update-labels "git-commit=${DEPLOY_COMMIT_SHORT},managed-by=manual" \
+  --set-env-vars "APP_COMMIT_SHA=${DEPLOY_COMMIT},A6_API_BASE=https://api.a6api.com/v1,A6_MODEL=gpt-5.6-luna,A6_VENDOR_ID=1729,A6_INPUT_USD_PER_M=0.005256,A6_OUTPUT_USD_PER_M=0.0315,A6_RUN_BUDGET_USD=1.0,A6_REQUEST_RESERVE_USD=0.01,A6_REQUEST_TIMEOUT_SECONDS=60,WHISPER_LANGUAGE=auto,MAX_AUDIO_DURATION_SECONDS=120,MAX_ANALYSES_PER_INSTANCE=50,BUDGET_PERSISTENCE=ephemeral,MEMBER_FEATURES_ENABLED=true,PERSISTENT_SAMPLE_CACHE_ENABLED=true,MAX_TOTAL_AUDIO_BYTES=536870912,FIREBASE_PROJECT_ID=${PROJECT_ID},MEETING_AUDIO_BUCKET=${PROJECT_ID}-meetings,RUNTIME_SERVICE_ACCOUNT=${RUNTIME_SERVICE_ACCOUNT}" \
+  --set-secrets "A6_API_KEY=${SECRET_NAME}:1"
