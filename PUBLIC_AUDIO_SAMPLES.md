@@ -2,17 +2,17 @@
 
 조사일: 2026-07-30
 
-## 최종 선택: AMI Meeting Corpus 10개
+## AMI Meeting Corpus 10개를 최종 선택
 
 현재 MVP의 결정·할 일 추출 테스트에는
 [AMI Meeting Corpus](https://groups.inf.ed.ac.uk/ami/corpus/)를 사용한다.
 
-- 실제 다자간 회의 100시간과 수동 전사·의사결정 주석을 제공한다.
+- 실제 다자간 회의 100시간과 사람이 직접 글로 옮긴 기록·의사결정 주석을 제공한다.
 - 공식 서버에서 로그인 없이 직접 WAV를 받을 수 있다.
 - 라이선스는 `CC BY 4.0`이다.
 - 의사결정 주석이 명시적인 서로 다른 회의 구간 10개를 골랐다.
 - 정확한 회의 ID·시작 시각·길이·기대 결정은
-  [`ami-samples.tsv`](./ami-samples.tsv)를 단일 정본으로 사용한다.
+  [`ami-samples.tsv`](./ami-samples.tsv)를 하나의 기준 파일로 사용한다.
 
 오디오는 Git과 Docker 이미지에 넣지 않는다. 아래 명령이 공식
 [AMI 다운로드 서버](https://groups.inf.ed.ac.uk/ami/download/)에서 필요한
@@ -34,7 +34,7 @@ docker compose run --rm sample-downloader
 - 남은 오류: `ami-02`는 LCD·spinning wheel 내용을 찾았지만 `decision`이 아닌
   `action_item`으로 분류했다.
 
-공개 영어 회의 세트는 기술 경로를 통과했다. 이후 아래 공개 한국어 자연 발화
+공개 영어 회의 세트는 기술 경로를 통과했다. 이후 아래 공개된 자연스러운 한국어 샘플
 2개로 제품 품질의 최종 GO 판정도 완료했다.
 
 ## 한국어 최종 샘플 2개
@@ -59,7 +59,7 @@ docker compose run --rm sample-downloader
 - 총 예상 A6API 비용: `$0.00007391`
 - 자동 게이트 2/2, 수동 의미 대조 2/2
 
-## 한국어 강건성 보조 후보: KMSAV
+## 한국어 보조 후보 KMSAV
 
 ETRI의 [KMSAV](https://github.com/etri/kmsav)는 한국어 다화자 자연 대화이고,
 데이터셋 라이선스는 `CC BY-NC-SA 4.0`이다. 공식
@@ -93,7 +93,7 @@ allowed)` 메타데이터를 확인했다. 오디오는 아직 내려받지 않�
 
 - 1–5: 업무·경제·공공 토론에 가까워 결정 후보 추출을 확인하기 좋다.
 - 6–8: 빠른 말투, 농담, 인터뷰 등 일반 대화 강건성을 확인한다.
-- 9–10: 전문용어가 포함된 질의응답 전사 품질을 확인한다.
+- 9–10: 전문용어가 포함된 질의응답의 음성 인식 품질을 확인한다.
 - `valid`와 `test` 후보를 각각 하나 넣어 한 split에만 치우치지 않았다.
 
 ## 이용 조건과 공개 포트폴리오 주의사항
@@ -111,10 +111,10 @@ allowed)` 메타데이터를 확인했다. 오디오는 아직 내려받지 않�
 
 ## 비교한 다른 소스
 
-### AI Hub 회의 데이터: 도메인은 최적이지만 자동화에 부적합
+### AI Hub 회의 데이터 — 도메인은 맞지만 자동화에는 부적합
 
 - [회의 음성](https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=132)은
-  3,000시간의 한국어 회의·토론·토크 WAV와 전사를 제공하며, 페이지는 원천
+  3,000시간의 한국어 회의·토론·토크 WAV와 음성 기록을 제공하며, 페이지는 원천
   데이터의 저작권 문제가 해결됐다고 설명한다.
 - [주요 영역별 회의 음성인식 데이터](https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=464)는
   7,000시간의 한국어 WAV+JSON, 다화자 회의·방송·의회·팟캐스트 데이터를
@@ -123,15 +123,15 @@ allowed)` 메타데이터를 확인했다. 오디오는 아직 내려받지 않�
   비로그인 상태에서는 로그인 함수로 연결된다. 따라서 현재 자동 다운로드
   소스로 채택하지 않았다.
 
-### Seoul Corpus: 로그인 없이 받을 수 있지만 회의가 아님
+### Seoul Corpus — 로그인 없이 받을 수 있지만 회의 자료는 아님
 
-[OpenSLR SLR113](https://www.openslr.org/113/)은 한국어 자발화 FLAC과
-TextGrid 전사를 로그인 없이 내려받을 수 있고 `CC BY-NC 2.0`이다. 하지만
+[OpenSLR SLR113](https://www.openslr.org/113/)은 자연스러운 한국어 말투가 담긴 FLAC과
+TextGrid 형식의 음성 기록을 로그인 없이 내려받을 수 있고 `CC BY-NC 2.0`이다. 하지만
 [원 논문 설명](https://library.nih.go.kr/ncmiklib/elib/kom/articleDtl.do?pk_pb_seq=PB06166598)처럼
 40명 각각의 인터뷰형 녹음이며 주 화자만 헤드셋 마이크를 사용했다. 다화자 회의
 제품 검증에는 맞지 않아 보조 ASR 자료로만 분류했다.
 
 ## 닫힌 게이트와 보류 작업
 
-한국어 자연 발화 2개로 Day 1 게이트는 GO로 닫았다. KMSAV 추가 후보 10개
+자연스러운 한국어 샘플 2개로 Day 1 게이트는 GO로 마무리했다. KMSAV 추가 후보 10개
 다운로드와 별도 ASR 회귀는 현재 웹 MVP를 막지 않는 보류 작업이다.
