@@ -28,7 +28,7 @@ fallback은 당시 개인 Google 계정 선택과 동의, 입력 경계, 모바�
 | 계정 B 분석·복원 | 후보 `/meetings/new` → `/meetings/1f785cd046a04a1ba4d9f324b72476e9`; 1440×900 | 실제 데모 오디오 1회 분석·저장, 상세·오디오·새로고침 | 실제 결과·오디오 표시와 동일 상세 복원 | 저장 전 Firestore 문서 1건·Storage 오디오 1개 확인 | Chrome inline 캡처, 저장 경로 없음 | PASS |
 | 계정 탈퇴 | 후보 `/account` → `/samples`; 1440×900 | `탈퇴` 입력, Google 재인증, MinuteMark B 계정 삭제 | 공개 샘플·로그아웃 UI 복귀, 삭제 회의 주소 비노출 | `DELETE /api/account` 204; B Firestore 문서·Storage 객체·고아 객체 0, Firebase Auth 사용자 부재 | 사용자 첨부·Chrome inline 캡처, 저장 경로 없음 | PASS |
 | QA 데이터 정리 | 후보 `/meetings`와 계정 A의 마지막 QA 회의 상세; 1920×911 | 삭제 전 문서·오디오 존재 확인, 삭제 확인 1회, 목록·이전 상세 재확인 | 목록 0건, 이전 상세 not-found | Firestore 상세 404·사용자 회의 0건, Storage 사용자 경로 객체 0건 | 사용자 첨부·Chrome inline 캡처, 저장 경로 없음 | PASS |
-| 최종 공개 V2 | `https://minutemark-2u3l25uhba-du.a.run.app`; 1440×900·390×844 | main SHA health 확인, 샘플·privacy·Google 계정 선택 진입·모바일 메뉴 확인 | 공개 샘플 2개·고지·모바일 접근·가로 넘침 없음, console 0건 | HTTP health 200 commit `48b76d2…`, samples·privacy·auth 200, docs 404; `minutemark-00012-luh` 100% | Chrome inline 캡처, 저장 경로 없음 | PASS |
+| 최종 공개 V2 | `https://minutemark-2u3l25uhba-du.a.run.app`; 1440×900·390×844 | 공개 샘플 2개·고지·Google 계정 선택 진입·모바일 메뉴·가로 넘침 없음, console 0건 | health 200 commit `48b76d2…`, samples·privacy·auth 200, docs 404; `minutemark-00012-luh` 100% | Chrome inline 캡처, 저장 경로 없음 | PASS |
 
 - 최신 Windows Chrome 브리지 작업은
   `019fc337-46d9-74d1-b912-3c586916f2ed`다.
