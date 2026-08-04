@@ -75,7 +75,11 @@ steps:
       - --max=1
       - --max-instances=1
       - --timeout=180
-      - --update-env-vars=APP_COMMIT_SHA=$COMMIT_SHA
+      - --service-account=minutemark-runtime@$PROJECT_ID.iam.gserviceaccount.com
+      - --no-traffic
+      - --tag=v2-$SHORT_SHA
+      - --update-env-vars=APP_COMMIT_SHA=$COMMIT_SHA,A6_API_BASE=https://api.a6api.com/v1,A6_MODEL=gpt-5.6-luna,A6_VENDOR_ID=1729,A6_INPUT_USD_PER_M=0.005256,A6_OUTPUT_USD_PER_M=0.0315,A6_RUN_BUDGET_USD=1.0,A6_REQUEST_RESERVE_USD=0.01,A6_REQUEST_TIMEOUT_SECONDS=60,MAX_AUDIO_DURATION_SECONDS=120,MAX_ANALYSES_PER_INSTANCE=50,BUDGET_PERSISTENCE=ephemeral,MEMBER_FEATURES_ENABLED=true,PERSISTENT_SAMPLE_CACHE_ENABLED=true,MAX_TOTAL_AUDIO_BYTES=536870912,FIREBASE_PROJECT_ID=$PROJECT_ID,MEETING_AUDIO_BUCKET=$PROJECT_ID-meetings,RUNTIME_SERVICE_ACCOUNT=minutemark-runtime@$PROJECT_ID.iam.gserviceaccount.com
+      - --update-secrets=A6_API_KEY=minutemark-a6-api-key:1
       - --update-labels=git-commit=$SHORT_SHA,managed-by=cloud-build
       - --quiet
 

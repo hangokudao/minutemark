@@ -24,8 +24,8 @@ docker compose run --rm sample-downloader
 
 ## 2026-07-30 실제 실행 결과
 
-- 실제 모델: `faster-whisper/small` CPU INT8 + A6API `claude-sonnet-5`
-- 판매자 경로 메타데이터: ID `1263`
+- 실제 모델: `faster-whisper/small` CPU INT8 + A6API `gpt-5.6-luna`
+- 판매자 경로 메타데이터: ID `1729`
 - 자동 게이트: 10/10 PASS
 - 처리 시간: 평균 20.09초, 최대 28.36초
 - 모든 결과: 60초 이하, JSON 구조 정상, 근거 구간 ID 유효

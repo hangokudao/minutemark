@@ -113,6 +113,57 @@ class AudioInputTest(unittest.IsolatedAsyncioTestCase):
             self.assertIn("WAV 변환", sample["modification"])
 
 
+class PublicSampleCacheTest(unittest.TestCase):
+    def setUp(self):
+        app._sample_result_cache.clear()
+
+    def tearDown(self):
+        app._sample_result_cache.clear()
+
+    @patch("app.analyze_audio")
+    @patch("app.get_sample_cache_store")
+    def test_reuses_persistent_sample_result_without_analysis(
+        self, get_cache, analyze_audio
+    ):
+        cached = {
+            "audio": "ko-01-action.wav",
+            "segments": [],
+            "extraction": {"decisions": [], "action_items": []},
+        }
+        get_cache.return_value.get.return_value = cached
+
+        with (
+            patch("app.PERSISTENT_SAMPLE_CACHE_ENABLED", True),
+            patch("app.sample_cache_key", return_value="sample-key"),
+        ):
+            result = app.analyze_sample("action")
+
+        analyze_audio.assert_not_called()
+        self.assertEqual(result["sample"]["id"], "action")
+        self.assertEqual(result["audio_url"], "/audio/action")
+
+    @patch("app.analyze_audio")
+    @patch("app.get_sample_cache_store")
+    def test_persists_successful_sample_result(self, get_cache, analyze_audio):
+        generated = {
+            "audio": "ko-01-action.wav",
+            "segments": [],
+            "extraction": {"decisions": [], "action_items": []},
+        }
+        cache = get_cache.return_value
+        cache.get.return_value = None
+        analyze_audio.return_value = generated
+
+        with (
+            patch("app.PERSISTENT_SAMPLE_CACHE_ENABLED", True),
+            patch("app.sample_cache_key", return_value="sample-key"),
+        ):
+            result = app.analyze_sample("action")
+
+        cache.put.assert_called_once_with("sample-key", generated)
+        self.assertEqual(result["sample"]["id"], "action")
+
+
 class GroundingOutputTest(unittest.TestCase):
     def test_normalizes_comma_separated_segment_ids(self):
         self.assertEqual(
