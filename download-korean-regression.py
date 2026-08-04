@@ -501,6 +501,8 @@ def process_sample(entry: dict[str, Any], corpus_dir: Path) -> tuple[str, bool]:
 def run(manifest_path: Path, check_only: bool) -> int:
     payload = load_manifest(manifest_path)
     entries = payload["samples"]
+    if check_only and any(not entry.get("sha256") for entry in entries):
+        raise ValidationError("--check-only requires every sample to have a SHA-256")
     corpus_dir = _manifest_corpus_dir(payload)
     failures: list[str] = []
     for entry in entries:

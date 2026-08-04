@@ -145,6 +145,21 @@ class KoreanRegressionValidationTests(unittest.TestCase):
             with self.assertRaises(downloader.ValidationError):
                 downloader._check_existing(output, entry)
 
+    def test_check_only_requires_every_manifest_hash(self):
+        payload = json.loads(
+            (ROOT / "korean-sample-manifest.json").read_text(encoding="utf-8")
+        )
+        payload["samples"][0]["sha256"] = ""
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest = Path(temporary) / "manifest.json"
+            manifest.write_text(json.dumps(payload), encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                downloader.ValidationError,
+                "requires every sample to have a SHA-256",
+            ):
+                downloader.run(manifest, check_only=True)
+
     def test_output_byte_cap_is_enforced(self):
         entry = json.loads((ROOT / "korean-sample-manifest.json").read_text(encoding="utf-8"))["samples"][0]
         with tempfile.TemporaryDirectory() as temporary:
