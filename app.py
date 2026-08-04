@@ -659,38 +659,39 @@ async def create_meeting(request: Request) -> dict:
             status_code=400,
             detail="업로드 요청을 읽을 수 없습니다.",
         ) from error
-    audio = form.get("audio")
-    if not isinstance(audio, StarletteUploadFile):
-        raise HTTPException(status_code=400, detail="오디오 파일을 선택해 주세요.")
 
-    raw_title = form.get("title")
-    if not isinstance(raw_title, str) or not raw_title.strip():
-        raise HTTPException(status_code=400, detail="회의 제목을 입력해 주세요.")
-    if len(raw_title.strip()) > 80:
-        raise HTTPException(
-            status_code=400,
-            detail="회의 제목은 80자 이하여야 합니다.",
-        )
-    if form.get("participant_notice_confirmed") != "true":
-        raise HTTPException(
-            status_code=400,
-            detail="회의 참여자에게 녹음과 분석 사실을 알렸는지 확인해 주세요.",
-        )
-
-    filename = Path(audio.filename or "").name
-    suffix = Path(filename).suffix.lower()
-    if suffix not in AUDIO_SUFFIXES:
-        allowed = ", ".join(sorted(AUDIO_SUFFIXES))
-        raise HTTPException(
-            status_code=415,
-            detail=f"지원하지 않는 파일입니다. 허용 형식: {allowed}",
-        )
-
-    title = meeting_title(raw_title)
-    content_type = audio.content_type or "application/octet-stream"
     temp_path = None
-    size_bytes = 0
     try:
+        audio = form.get("audio")
+        if not isinstance(audio, StarletteUploadFile):
+            raise HTTPException(status_code=400, detail="오디오 파일을 선택해 주세요.")
+
+        raw_title = form.get("title")
+        if not isinstance(raw_title, str) or not raw_title.strip():
+            raise HTTPException(status_code=400, detail="회의 제목을 입력해 주세요.")
+        if len(raw_title.strip()) > 80:
+            raise HTTPException(
+                status_code=400,
+                detail="회의 제목은 80자 이하여야 합니다.",
+            )
+        if form.get("participant_notice_confirmed") != "true":
+            raise HTTPException(
+                status_code=400,
+                detail="회의 참여자에게 녹음과 분석 사실을 알렸는지 확인해 주세요.",
+            )
+
+        filename = Path(audio.filename or "").name
+        suffix = Path(filename).suffix.lower()
+        if suffix not in AUDIO_SUFFIXES:
+            allowed = ", ".join(sorted(AUDIO_SUFFIXES))
+            raise HTTPException(
+                status_code=415,
+                detail=f"지원하지 않는 파일입니다. 허용 형식: {allowed}",
+            )
+
+        title = meeting_title(raw_title)
+        content_type = audio.content_type or "application/octet-stream"
+        size_bytes = 0
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp:
             temp_path = Path(temp.name)
             while chunk := await audio.read(1024 * 1024):
@@ -738,11 +739,12 @@ async def create_meeting(request: Request) -> dict:
                 status_code=503,
                 detail="분석은 끝났지만 회의를 저장하지 못했습니다. 다시 시도해 주세요.",
             ) from error
-    except HTTPException:
-        raise
     finally:
         if temp_path:
             temp_path.unlink(missing_ok=True)
+        close_form = getattr(form, "close", None)
+        if close_form is not None:
+            await close_form()
 
 
 @app.delete("/api/meetings/{meeting_id}", status_code=204)
