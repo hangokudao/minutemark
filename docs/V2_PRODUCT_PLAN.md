@@ -1,6 +1,6 @@
 # MinuteMark V2 제품·구현 계획
 
-> 문서 역할: V2 설계 기준선. 최신 릴리스 상태의 기준 문서는
+> 문서 역할: V2 설계 기준선. 최신 릴리스 상태의 단일 기준 문서는
 > [`V2.1 버전업 실행 기록`](./V2_1_RELEASE_PLAN.md)이다.
 > 상태: 구현 완료 · 공개 V2 배포 완료
 > 기준: V1 UI와 기존 FastAPI 분석 계약에서 시작한 V2 설계
@@ -16,7 +16,7 @@ RELEASED`다.
 | --- | --- | --- |
 | 인증·API | Firebase ID token 서명·만료·폐기 확인, 인증 전 multipart body 차단 | 코드·테스트 PASS |
 | 저장·소유권 | UID 하위 Firestore 문서, 비공개 Storage, 객체 generation 고정, 5분 signed URL, 타 사용자 404 | 코드·테스트 PASS |
-| 삭제 | 오디오→문서, 삭제되지 않고 남은 객체 정리, 전체 content→Auth 사용자 순서와 중복 없는 재시도 | 코드·테스트 PASS |
+| 삭제 | 오디오→문서, 삭제되지 않고 남은 객체 정리, 전체 content→Auth 사용자 순서와 멱등성 있는 재시도 | 코드·테스트 PASS |
 | 회귀 | 운영 Docker 이미지에서 분석·회원·보안·라우팅 | V2.1 48/48 PASS |
 | GCP | 프로젝트 소유 Google Cloud 계정, 서울 Firestore·Storage, deny-all Rules, PAP·UBLA, soft delete 0, 최소권한 runtime SA | PASS |
 | A6 secret·라우터 | 기존 secret 버전 `1`, 실제 V2 샘플 `gpt-5.6-luna`, grounding true | HTTP 200 PASS |
@@ -25,12 +25,12 @@ RELEASED`다.
 | 인증 후 사용자 흐름 | 실제 분석·저장·목록·상세·새로고침·로그아웃·회의 삭제 | 저장·재열람·교차 사용자 차단·회의·계정 삭제 PASS |
 | 공개 화면 1440×900·390×844 | 배포 후보의 privacy·메뉴·라우팅·overflow 확인 | 게스트 화면 PASS |
 | 모바일 회원 흐름 | 390×844에서 실제 저장 상세·오디오·메뉴·회의 삭제 | PASS · overflow 없음, 저장소 잔여 0 |
-| 배포 | release commit `48b76d2…`의 V2 최초 공개 배포 버전 `minutemark-00012-luh` | 공개 health·브라우저 스모크 PASS |
+| 배포 | release commit `48b76d2…`의 V2 최초 공개 revision(배포 버전) `minutemark-00012-luh` | 공개 health·브라우저 스모크 PASS |
 
 구현 완료를 출시 승인으로 해석하지 않는다. 실제 Google 로그인·분석·저장·다시 열기·
 회의 삭제와 모바일 회원 흐름, runtime SA의 signed URL 발급, 다른 사용자 접근
 차단과 실제 계정 탈퇴는 배포 후보에서 통과했다. 같은 코드가 `main`에 병합되고
-main SHA의 0% 배포 버전 health를 확인한 뒤 V2 트래픽을 공개했다. 로컬 검증을 위해
+main SHA의 0% revision(배포 버전) health를 확인한 뒤 V2 트래픽을 공개했다. 로컬 검증을 위해
 사용자 계정에 `signBlob` 권한을 임의 추가하지 않았다.
 
 교차 사용자 검증에 사용한 계정 A의 마지막 QA 회의도 삭제했으며, 계정 A의
@@ -69,7 +69,7 @@ FastAPI가 검증한 사용자 요청만 처리한다.
 V2.1의 실제 회원 E2E는 소유자가 관리하는 Google 테스트 계정 A와 B로 수행한다.
 계정 소유자만 로그인하고 에이전트는 이메일·비밀번호·쿠키·token을 받거나 공개
 QA 기록에 남기지 않는다. 세부 실행 게이트는
-[`V2_1_RELEASE_PLAN.md`](./V2_1_RELEASE_PLAN.md)를 최신 기준 문서로 사용한다.
+[`V2_1_RELEASE_PLAN.md`](./V2_1_RELEASE_PLAN.md)를 최신 기준 문서(정본)로 사용한다.
 
 ## 2. V2 범위
 
@@ -107,14 +107,14 @@ QA 기록에 남기지 않는다. 세부 실행 게이트는
   결과와 실제 말이 나온 구간을 확인한다. 성공 신호는 새로고침 후에도 본인 회의만
   다시 열리고 재생 위치 이동·음성 기록 강조가 함께 동작하는 것이다.
 - `CONTENT`: 실제 공개 샘플 2개, 사용자가 저장한 회의, 제목·생성 시각·길이,
-  결정·할 일 수, 음성 기록 구간, 근거 ID, 오디오, 빈 목록·분석 중·오류·삭제 상태를
+  결정·할 일 수, 음성 인식 결과 구간, 근거 ID, 오디오, 빈 목록·분석 중·오류·삭제 상태를
   사용한다.
 - `SYSTEM`: 현재 V1의 단일 sans-serif, 따뜻한 흰색 작업 영역, 짙은 텍스트,
   파란 주요 동작, 얇은 구분선, 276px rail과 결과 60/40 구조를 재사용한다.
 - `PRIMARY`: 현재 구현 스크린샷
   [`minutemark-desktop.png`](./screenshots/minutemark-desktop.png)과
   [`minutemark-mobile.png`](./screenshots/minutemark-mobile.png), 그리고
-  [`design-qa.md`](../design-qa.md)를 V2 시각 기준 문서로 사용한다. 외부 제품 패턴은
+  [`design-qa.md`](../design-qa.md)를 V2 시각 기준 문서(정본)로 사용한다. 외부 제품 패턴은
   [`DESIGN_REFERENCES.md`](./DESIGN_REFERENCES.md)의 Teams 재생 맥락, Otter 결과
   구조, Notion 근거 인용 조합만 참고한다.
 - `MEDIA`: 회원의 실제 회의 오디오를 비공개 Storage에 저장하고 만료가 짧은
@@ -319,7 +319,7 @@ V2의 읽기 패턴은 목록·상세·삭제뿐이고 분석 결과는 작고 �
 | `created_at` | 서버 시각 |
 | `audio` | 객체 경로, generation, MIME, 크기, 길이, SHA-256 |
 | `analysis` | 모델, 처리 시간, token usage, 예상 비용, grounding 상태 |
-| `segments` | ID, 시작·종료 시각, 음성 기록 배열 |
+| `segments` | ID, 시작·종료 시각, 음성 인식 결과 배열 |
 | `decisions` | text, segment IDs 배열 |
 | `action_items` | text, owner, due, segment IDs 배열 |
 | `schema_version` | 상세 렌더링 호환성 버전 |
@@ -423,7 +423,7 @@ Firebase Auth가 제공할 수 있는 이름·사진은 앱 DB에 복제하지 �
 - 음성 인식 결과
 - segment ID
 - segment 시작·종료 시각
-- 결과 정리 지시문
+- 구조화 출력 지시문
 
 원본 오디오, UID, 이메일, 회의 제목, Storage 경로는 보내지 않는다. 다만 A6API의
 처리 국가·보관·학습·재위탁 사실은 현재 저장소만으로 확인할 수 없다. 확인 전에는
@@ -536,7 +536,7 @@ Cloud Storage 새 버킷은 별도 설정이 없으면 soft delete가 기본 7�
 
 - create/list/detail/audio URL API
 - Firestore aggregate와 private Storage 저장
-- 중복 없는 meeting ID와 실패 시 남은 파일 삭제
+- 멱등 meeting ID와 실패 시 남은 파일 삭제
 - 계정당·서비스 전체 저장 한도
 
 승인 기준:
@@ -559,7 +559,7 @@ Cloud Storage 새 버킷은 별도 설정이 없으면 soft delete가 기본 7�
 
 승인 기준:
 
-- 회의 삭제를 다시 요청해도 결과가 중복되지 않음
+- 회의 삭제 재시도도 멱등으로 처리됨
 - 계정 삭제가 content first, Auth last 순서
 - 탈퇴 후 회의 문서·오디오·Auth 사용자 잔여물 0
 - 실제 네트워크 payload, Storage 설정, 로그 보존과 정책 문구 대조
@@ -619,7 +619,7 @@ README에서는 다음을 설명한다.
 - 왜 익명 업로드를 막았는가
 - 왜 현재 GCP 경계에서 Firebase·Firestore·Storage를 선택했는가
 - 왜 성공한 분석만 저장하는가
-- 왜 짧은 signed URL과 중복 없는 meeting ID가 필요한가
+- 왜 짧은 signed URL과 멱등 meeting ID가 필요한가
 - 왜 Storage의 삭제 설정이 개인정보 문구를 바꾸는가
 - AI가 하는 일과 결정론적 코드가 보장하는 일
 - 실제 latency·token·비용과 2분·20MB·동시 1·계정 5건 제한
@@ -638,7 +638,7 @@ README에서는 다음을 설명한다.
 - 인증 전에 전체 20MB body를 읽거나 파일을 메모리에 한 번에 올림
 - Firestore만 삭제하고 원본 오디오 또는 soft-deleted 객체를 남김
 - Auth 사용자를 회의·오디오보다 먼저 삭제함
-- 중복 방지 키 없이 장시간 POST를 다시 요청해 분석·저장을 중복으로 만듦
+- 멱등 키 없이 장시간 POST를 재시도해 분석·저장을 중복으로 만듦
 - 서버 신호 없이 가짜 단계별 진행률을 표시함
 - V2가 오디오를 저장하면서 V1의 `서버에 저장하지 않음` 문구를 유지함
 - A6API의 미확인 보관·학습·이전 사실을 확정 문구로 작성함
@@ -649,7 +649,7 @@ README에서는 다음을 설명한다.
 
 - `app.py`의 업로드는 임시 파일을 사용하고 성공·실패 뒤 삭제한다.
 - `pipeline.py`는 원본 오디오가 아니라 음성 인식 결과·구간 ID·시각만 A6API에 보낸다.
-- 서버는 모델의 근거 ID가 실제 음성 기록 구간에 존재하는지 재검증한다.
+- 서버는 모델의 근거 ID가 실제 음성 인식 결과 구간에 존재하는지 재검증한다.
 - V1 업로드 오디오는 브라우저 ObjectURL이라 새로고침 뒤 유지되지 않았다.
 - V2는 Firebase UID 하위 Firestore 문서와 private Storage 객체로 사용자 소유권과
   영속 저장을 추가했다.
