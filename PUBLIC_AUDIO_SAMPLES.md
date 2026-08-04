@@ -131,7 +131,51 @@ TextGrid 형식의 음성 기록을 로그인 없이 내려받을 수 있고 `CC
 40명 각각의 인터뷰형 녹음이며 주 화자만 헤드셋 마이크를 사용했다. 다화자 회의
 제품 검증에는 맞지 않아 보조 ASR 자료로만 분류했다.
 
+## 2026-08-04 한국어 개발·CI 회귀 샘플 10개
+
+위 후보 풀에서 정확히 10개를 다시 확인해 공개 상태와
+`Creative Commons Attribution license (reuse allowed)` 표시를 확인한 뒤, 각 영상의
+60초 구간을 로컬에서 16 kHz mono PCM WAV로 만들었다. 정본은
+[`korean-sample-manifest.json`](./korean-sample-manifest.json)이며, 실행 가능한
+다운로드·검증기는 [`download-korean-regression.py`](./download-korean-regression.py)다.
+
+```sh
+python3 download-korean-regression.py
+python3 download-korean-regression.py --check-only
+```
+
+실행 시점 검증·로컬 신호 결과는 다음과 같다. 모든 출력은 요청 길이 60초와 실제
+45–75초 범위를 통과했고, SHA-256 전체 값은 manifest에 기록했다.
+
+| ID | YouTube 영상 | 시작 | 길이 | RMS | active signal | 결과 |
+|---|---|---:|---:|---:|---:|---|
+| `kmsav-01` | `07zhNSvDR0A` · GS칼텍스 예울마루 | 211초 | 60.00초 | -17.3 dBFS | 0.85 | PASS |
+| `kmsav-02` | `-ySffCRdGl8` · Ripple_S | 216초 | 60.00초 | -17.4 dBFS | 0.91 | PASS |
+| `kmsav-03` | `9g6USDTbGhg` · KBC 콘텐츠 | 263초 | 60.00초 | -26.2 dBFS | 0.72 | PASS |
+| `kmsav-04` | `0e76Mv3YWso` · 카오스 사이언스 | 366초 | 60.00초 | -25.4 dBFS | 0.73 | PASS |
+| `kmsav-05` | `3uuLmiV-HNI` · 카오스 사이언스 | 158초 | 60.00초 | -23.4 dBFS | 0.73 | PASS |
+| `kmsav-06` | `0FzNHep2onE` · 공병호TV | 548초 | 60.00초 | -16.1 dBFS | 0.84 | PASS |
+| `kmsav-07` | `9h7CCmpcirA` · 젬비씨 JEMBC | 1408초 | 60.00초 | -24.7 dBFS | 0.67 | PASS |
+| `kmsav-08` | `9vY0YzdjoMU` · 김성수TV 성수대로 | 579초 | 60.00초 | -23.8 dBFS | 0.66 | PASS |
+| `kmsav-09` | `0rj144h8MeE` · 안진걸TV | 712초 | 60.00초 | -22.2 dBFS | 0.86 | PASS |
+| `kmsav-10` | `9bTYC7hkWAI` · 카오스 사이언스 | 436초 | 60.00초 | -24.4 dBFS | 0.68 | PASS |
+
+실행 환경에는 `yt-dlp`, `ffmpeg`, `ffprobe`가 필요하다. `--check-only`는 네트워크 없이
+기존 로컬 파일의 형식·길이·신호·SHA-256만 다시 확인한다.
+
+미디어는 `samples/korean-regression/` 아래에만 저장하고 Git에는 넣지 않는다. 검증기는
+정확한 YouTube ID allowlist, HTTPS 원본 경계, 45–75초 구간, 출력 경로, 임시 파일과
+원자적 이름 변경, 다운로드·출력 바이트 상한, `ffprobe` 오디오 형식·길이, SHA-256,
+무음이 아닌 신호를 확인한다. YouTube 언어 메타데이터와 로컬 신호는 한국어 음성이
+있을 가능성을 확인하는 프록시일 뿐이므로, 외부 음성 인식 없이 의미 품질을 증명했다고
+표현하지 않으며 manifest의 `NOT_PROVEN_WITHOUT_STT` 게이트를 유지한다.
+
+KMSAV 데이터셋의 `CC BY-NC-SA 4.0` 조건과 각 원본 영상의 CC BY 조건을 함께 따른다.
+따라서 이 샘플은 비상업적 로컬 회귀 검증에만 사용하고, 공개·상업 배포 전에 동일조건
+변경허락과 원본 저작자 표시 의무를 다시 확인한다.
+
 ## 닫힌 게이트와 보류 작업
 
-자연 발화(사람이 실제로 자연스럽게 한 말) 샘플 2개로 Day 1 게이트는 GO로 마무리했다. KMSAV 추가 후보 10개
-다운로드와 별도 ASR 회귀는 현재 웹 MVP를 막지 않는 보류 작업이다.
+사람이 실제로 자연스럽게 말한 한국어 샘플 2개로 Day 1 게이트는 GO로 마무리했다.
+개발·CI 회귀 샘플 10개는 위 manifest와 검증기로 로컬에서 수집·검증한다. 외부 음성
+인식 기반 의미 품질 평가는 별도 승인 없이는 수행하지 않는다.

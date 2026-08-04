@@ -1,6 +1,7 @@
 import copy
 import hashlib
 import logging
+import math
 import os
 import sqlite3
 import tempfile
@@ -135,6 +136,10 @@ class BudgetExceeded(RuntimeError):
 
 
 class CapacityExceeded(RuntimeError):
+    pass
+
+
+class UploadBodyTooLarge(OSError):
     pass
 
 
@@ -278,7 +283,7 @@ def reserve_analysis_slot() -> None:
     _analysis_count += 1
 
 
-def audio_duration_seconds(audio_path: Path) -> float:
+def audio_duration_seconds(audio_path: Path) -> float | None:
     with av.open(str(audio_path)) as container:
         if container.duration is not None:
             return float(container.duration / av.time_base)
@@ -291,7 +296,7 @@ def audio_duration_seconds(audio_path: Path) -> float:
             or audio_stream.duration is None
             or audio_stream.time_base is None
         ):
-            return 0.0
+            return None
         return float(audio_stream.duration * audio_stream.time_base)
 
 
@@ -313,6 +318,12 @@ def get_model() -> WhisperModel:
 def analyze_audio(audio_path: Path, display_name: str) -> dict:
     with _analysis_lock:
         duration_seconds = audio_duration_seconds(audio_path)
+        if (
+            duration_seconds is None
+            or not math.isfinite(duration_seconds)
+            or duration_seconds <= 0
+        ):
+            raise ValueError("오디오 길이를 확인할 수 없습니다.")
         if duration_seconds > MAX_AUDIO_DURATION_SECONDS:
             raise ValueError(
                 "오디오는 "
@@ -623,44 +634,64 @@ async def create_meeting(request: Request) -> dict:
             return existing
     await run_in_threadpool(ensure_meeting_capacity, store, user.uid)
     try:
-        form = await request.form()
+        form_request = request
+        if isinstance(request, Request):
+            received_bytes = 0
+
+            async def receive_with_limit():
+                nonlocal received_bytes
+                message = await request.receive()
+                if message["type"] == "http.request":
+                    received_bytes += len(message.get("body", b""))
+                    if received_bytes > MAX_MULTIPART_BYTES:
+                        raise UploadBodyTooLarge()
+                return message
+
+            form_request = Request(request.scope, receive_with_limit)
+        form = await form_request.form()
+    except UploadBodyTooLarge as error:
+        raise HTTPException(
+            status_code=413,
+            detail="파일은 20MB 이하여야 합니다.",
+        ) from error
     except Exception as error:
         raise HTTPException(
             status_code=400,
             detail="업로드 요청을 읽을 수 없습니다.",
         ) from error
-    audio = form.get("audio")
-    if not isinstance(audio, StarletteUploadFile):
-        raise HTTPException(status_code=400, detail="오디오 파일을 선택해 주세요.")
 
-    raw_title = form.get("title")
-    if not isinstance(raw_title, str) or not raw_title.strip():
-        raise HTTPException(status_code=400, detail="회의 제목을 입력해 주세요.")
-    if len(raw_title.strip()) > 80:
-        raise HTTPException(
-            status_code=400,
-            detail="회의 제목은 80자 이하여야 합니다.",
-        )
-    if form.get("participant_notice_confirmed") != "true":
-        raise HTTPException(
-            status_code=400,
-            detail="회의 참여자에게 녹음과 분석 사실을 알렸는지 확인해 주세요.",
-        )
-
-    filename = Path(audio.filename or "").name
-    suffix = Path(filename).suffix.lower()
-    if suffix not in AUDIO_SUFFIXES:
-        allowed = ", ".join(sorted(AUDIO_SUFFIXES))
-        raise HTTPException(
-            status_code=415,
-            detail=f"지원하지 않는 파일입니다. 허용 형식: {allowed}",
-        )
-
-    title = meeting_title(raw_title)
-    content_type = audio.content_type or "application/octet-stream"
     temp_path = None
-    size_bytes = 0
     try:
+        audio = form.get("audio")
+        if not isinstance(audio, StarletteUploadFile):
+            raise HTTPException(status_code=400, detail="오디오 파일을 선택해 주세요.")
+
+        raw_title = form.get("title")
+        if not isinstance(raw_title, str) or not raw_title.strip():
+            raise HTTPException(status_code=400, detail="회의 제목을 입력해 주세요.")
+        if len(raw_title.strip()) > 80:
+            raise HTTPException(
+                status_code=400,
+                detail="회의 제목은 80자 이하여야 합니다.",
+            )
+        if form.get("participant_notice_confirmed") != "true":
+            raise HTTPException(
+                status_code=400,
+                detail="회의 참여자에게 녹음과 분석 사실을 알렸는지 확인해 주세요.",
+            )
+
+        filename = Path(audio.filename or "").name
+        suffix = Path(filename).suffix.lower()
+        if suffix not in AUDIO_SUFFIXES:
+            allowed = ", ".join(sorted(AUDIO_SUFFIXES))
+            raise HTTPException(
+                status_code=415,
+                detail=f"지원하지 않는 파일입니다. 허용 형식: {allowed}",
+            )
+
+        title = meeting_title(raw_title)
+        content_type = audio.content_type or "application/octet-stream"
+        size_bytes = 0
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp:
             temp_path = Path(temp.name)
             while chunk := await audio.read(1024 * 1024):
@@ -708,11 +739,12 @@ async def create_meeting(request: Request) -> dict:
                 status_code=503,
                 detail="분석은 끝났지만 회의를 저장하지 못했습니다. 다시 시도해 주세요.",
             ) from error
-    except HTTPException:
-        raise
     finally:
         if temp_path:
             temp_path.unlink(missing_ok=True)
+        close_form = getattr(form, "close", None)
+        if close_form is not None:
+            await close_form()
 
 
 @app.delete("/api/meetings/{meeting_id}", status_code=204)

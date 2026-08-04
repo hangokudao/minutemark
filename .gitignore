@@ -8,4 +8,5 @@ samples/*
 !samples/.gitkeep
 !samples/korean/
 !samples/korean/*.wav
+samples/korean-regression/
 docs/demo/minutemark-evidence-reel.mp4
