@@ -326,6 +326,11 @@ MM-PUBLIC-AUDIT 선정 결과에 따라 공개 한국어 샘플을 정확히 10�
 - 후속 최소 수정은 로컬 태그의 `sample-tools` 테스트 이미지에서 전체 테스트를 실행하고 그 테스트 이미지는 push하지 않으며, lean runtime 이미지만 push·deploy하는 방식이다.
 - 로컬 검증은 같은 test image에서 63/63 `PASS`, `sample-tools`의 `ffprobe` 있음, runtime의 `ffprobe` 없음이다. 실제 원격 재실행은 `PENDING`이며, 성공 배포로 기록하지 않는다.
 
+0% 후보 `minutemark-00018-laf`에서는 실제 샘플 분석 2회가 각각 502로
+실패했다(104.99초·153.69초). 읽기 timeout을 포함한 `TimeoutError` 재시도가
+빠져 있어 트래픽 전환을 보류했으며, 이번 수정에서 기존 네트워크 오류와 같은
+정확히 1회 재시도 정책으로 보완한다.
+
 ### 증거 구분
 
 | 구분 | 대상 | 환경 | 상태 |

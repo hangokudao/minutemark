@@ -100,6 +100,11 @@ def open_a6_request(request):
                 time.sleep(1)
                 continue
             raise
+        except TimeoutError:
+            if attempt == 0:
+                time.sleep(1)
+                continue
+            raise
 
 
 def build_a6_request(request_body: dict) -> urllib.request.Request:
