@@ -294,13 +294,61 @@ Result: 공개 샘플·privacy·모바일 메뉴는 통과. /auth는 회원 기�
 Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정 UI 없음.
 ```
 
-- 데스크톱 `/samples`: 공개 샘플 2개, 가로 넘침 없음, 최근 회의·예산 잔액 비노출
+- 데스크톱 `/samples`: 당시 공개 샘플 2개, 가로 넘침 없음, 최근 회의·예산 잔액 비노출
+  (2026-08-05 이후 공개 샘플은 10개로 확장 — 아래 추가 기록)
 - 데스크톱·모바일 `/privacy`: 담당 명칭과 `hangokudao@gmail.com` 표시
 - 모바일 `/samples`: 390/390, 새 회의·메뉴 표시
 - 모바일 메뉴: 공개 샘플·privacy·GitHub만 표시, 회원 전용 항목 비노출
 - 콘솔 error·warn: 0
 - 네트워크 워터폴은 Chrome 점검 API가 제공하지 않아 `BLOCKED`
 - Google 로그인, 계정 전환, 샘플 분석, 업로드, 삭제는 수행하지 않음
+
+## 9.1 공개 샘플 10개 확장 (2026-08-05)
+
+MM-PUBLIC-AUDIT 선정 결과에 따라 공개 한국어 샘플을 정확히 10개로 맞췄다.
+
+- 유지: `ko-01-action.wav`, `ko-02-decision.wav`
+- 추가: `kmsav-01/03/04/05/06/07/08/10` (60초 · 16 kHz mono · CC BY 원본)
+- 제외(번들 비포함): `kmsav-02`, `kmsav-09`
+- 메타데이터: `app.py` `SAMPLES` 10개, 출처·저작자·라이선스·가공 표시
+- UI: 샘플 카드 길이는 API `duration_seconds`를 표시(하드코드 34초 제거)
+
+### 2026-08-05 로컬 브라우저 QA 증거
+
+- `wsl-local-chrome-bridge`의 `@chrome`은 Windows 제어 구성 요소 누락으로 `BLOCKED`였으며, 성공으로 바꾸지 않았다.
+- 허용된 격리 Windows Chrome headless DevTools fallback이 HEAD `f01d2acec9d1c77cf57b29f0b9ed00da83cc0129`에서 정확한 `1440×900` 및 `390×844`를 검증했다: count=10, expected IDs `action/decision/kmsav-01/03/04/05/06/07/08/10`, `horizontalOverflow=false`, `overlaps=[]`, `clipped=[]`, `allReachable=true`, console/network error events=`[]`.
+- `analyze`/A6 호출은 없었다. `/tmp/minutemark-chrome-qa.PznZp7/desktop-cdp-full.png` 및 `/tmp/minutemark-chrome-qa.PznZp7/mobile-cdp-full.png`는 임시 QA 산출물이므로 커밋하지 않는다.
+
+### 증거 구분
+
+| 구분 | 대상 | 환경 | 상태 |
+|---|---|---|---|
+| 기존 라이브 증거 | `ko-01`, `ko-02` | 공개 Cloud Run 분석·POST 200 | 유지(재실행 아님) |
+| 신규 로컬 의미 게이트 | 추가 8 WAV | 로컬 Docker · whisper small + A6 ×1 | 8/8 PASS · 외부 호출 8 |
+
+### 신규 로컬 의미 게이트 8행 (sanitized, 시크릿 없음)
+
+| ID | STT 구간 | 한글 | 결정 | 할 일 | grounding | 예상 비용(USD) |
+|---|---:|---:|---:|---:|---|---:|
+| kmsav-01 | 10 | 278 | 0 | 0 | valid | 0.00002768 |
+| kmsav-03 | 14 | 311 | 0 | 0 | valid | 0.00002820 |
+| kmsav-04 | 22 | 357 | 0 | 0 | valid | 0.00002926 |
+| kmsav-05 | 10 | 306 | 0 | 0 | valid | 0.00002775 |
+| kmsav-06 | 13 | 288 | 0 | 0 | valid | 0.00002804 |
+| kmsav-07 | 14 | 262 | 0 | 0 | valid | 0.00002819 |
+| kmsav-08 | 21 | 335 | 0 | 0 | valid | 0.00002921 |
+| kmsav-10 | 14 | 321 | 0 | 0 | valid | 0.00002836 |
+
+샘플별 실제 말의 핵심 내용과 제목·설명·제품 분석 결과를 대조한 판정은
+[`PUBLIC_AUDIO_SAMPLES.md`](../PUBLIC_AUDIO_SAMPLES.md)의 로컬 의미 게이트 표에
+기록했으며 8/8 일치했다.
+
+A6 호출 자격은 **GCP Secret Manager 시크릿 `minutemark-a6-api-key`(버전 1,
+프로젝트 `minutemark-portfolio`)** 범주에서 런타임 환경 변수로만 주입했다.
+키 원문·파일·커밋·문서 표에는 남기지 않았다.
+
+- 검증: 대상 단위 테스트, sample-tools Docker 전체 회귀 63/63 zero-skip,
+  `samples/korean` WAV 개수=10
 
 ## 10. V2.1 업데이트 내역
 
@@ -310,6 +358,7 @@ Evidence: Chrome 새 에이전트 탭, 1440×900·390×844 캡처. 개인 계정
 - 사용자별 회의 분석·저장·목록·상세·오디오 재생·삭제
 - `/meetings`, `/meetings/new`, `/meetings/{id}`, `/account`, `/privacy` 라우팅
 - 모바일 회원 메뉴, 회의 제목, 참여자 확인, 작성 중 이탈 경고
+- 공개 한국어 샘플 10개 세트 (`ko-01`·`ko-02` + 선정 KMSAV 8)
 
 ### 변경
 
