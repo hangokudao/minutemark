@@ -335,6 +335,29 @@ class A6RetryTest(unittest.TestCase):
         self.assertEqual(urlopen.call_count, 2)
         sleep.assert_called_once_with(1)
 
+    @patch("pipeline.time.sleep")
+    @patch("pipeline.urllib.request.urlopen")
+    def test_retries_one_bare_timeout(self, urlopen, sleep):
+        response = Mock()
+        urlopen.side_effect = [TimeoutError("read timed out"), response]
+
+        self.assertIs(open_a6_request(Mock()), response)
+        self.assertEqual(urlopen.call_count, 2)
+        sleep.assert_called_once_with(1)
+
+    @patch("pipeline.time.sleep")
+    @patch("pipeline.urllib.request.urlopen")
+    def test_propagates_after_two_bare_timeouts(self, urlopen, sleep):
+        timeout = TimeoutError("read timed out")
+        urlopen.side_effect = [timeout, timeout]
+
+        with self.assertRaises(TimeoutError) as raised:
+            open_a6_request(Mock())
+
+        self.assertIs(raised.exception, timeout)
+        self.assertEqual(urlopen.call_count, 2)
+        sleep.assert_called_once_with(1)
+
     @patch("pipeline.open_a6_request")
     def test_falls_back_without_json_schema_on_400(self, open_request):
         response = io.BytesIO(json.dumps({"choices": []}).encode())
