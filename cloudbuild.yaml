@@ -26,6 +26,18 @@ steps:
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:latest
       - .
 
+  - id: build-test
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --target
+      - sample-tools
+      - --cache-from
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:latest
+      - --tag
+      - ${_SERVICE}:test-$COMMIT_SHA
+      - .
+
   - id: test
     name: gcr.io/cloud-builders/docker
     args:
@@ -37,7 +49,7 @@ steps:
       - /workspace/samples:/samples:ro
       - --entrypoint
       - python
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$COMMIT_SHA
+      - ${_SERVICE}:test-$COMMIT_SHA
       - -m
       - unittest
       - discover

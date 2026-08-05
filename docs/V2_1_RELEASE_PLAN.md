@@ -319,6 +319,13 @@ MM-PUBLIC-AUDIT 선정 결과에 따라 공개 한국어 샘플을 정확히 10�
 - 허용된 격리 Windows Chrome headless DevTools fallback이 HEAD `f01d2acec9d1c77cf57b29f0b9ed00da83cc0129`에서 정확한 `1440×900` 및 `390×844`를 검증했다: count=10, expected IDs `action/decision/kmsav-01/03/04/05/06/07/08/10`, `horizontalOverflow=false`, `overlaps=[]`, `clipped=[]`, `allReachable=true`, console/network error events=`[]`.
 - `analyze`/A6 호출은 없었다. `/tmp/minutemark-chrome-qa.PznZp7/desktop-cdp-full.png` 및 `/tmp/minutemark-chrome-qa.PznZp7/mobile-cdp-full.png`는 임시 QA 산출물이므로 커밋하지 않는다.
 
+### 2026-08-05 Cloud Build 후보 판정
+
+- GitHub 계정 `hangokudao`의 PR #10을 merge한 커밋은 `c5eccbc4a01390fef51734489a4d68df5b43555e`다.
+- Cloud Build `a1fead64-33b2-49b2-96dc-cffa412f9578`는 최종 runtime 이미지에 의도적으로 없는 `ffprobe`를 한국어 회귀 테스트 2건이 요구해 test 단계가 `FAILURE`로 끝났다. 후보는 배포하지 않았고 공개 트래픽 100%는 `minutemark-00014-cah`에 유지했다.
+- 후속 최소 수정은 로컬 태그의 `sample-tools` 테스트 이미지에서 전체 테스트를 실행하고 그 테스트 이미지는 push하지 않으며, lean runtime 이미지만 push·deploy하는 방식이다.
+- 로컬 검증은 같은 test image에서 63/63 `PASS`, `sample-tools`의 `ffprobe` 있음, runtime의 `ffprobe` 없음이다. 실제 원격 재실행은 `PENDING`이며, 성공 배포로 기록하지 않는다.
+
 ### 증거 구분
 
 | 구분 | 대상 | 환경 | 상태 |
