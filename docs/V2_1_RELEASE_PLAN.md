@@ -333,6 +333,10 @@ MM-PUBLIC-AUDIT 선정 결과에 따라 공개 한국어 샘플을 정확히 10�
 | kmsav-08 | 21 | 335 | 0 | 0 | valid | 0.00002921 |
 | kmsav-10 | 14 | 321 | 0 | 0 | valid | 0.00002836 |
 
+샘플별 실제 말의 핵심 내용과 제목·설명·제품 분석 결과를 대조한 판정은
+[`PUBLIC_AUDIO_SAMPLES.md`](../PUBLIC_AUDIO_SAMPLES.md)의 로컬 의미 게이트 표에
+기록했으며 8/8 일치했다.
+
 A6 호출 자격은 **GCP Secret Manager 시크릿 `minutemark-a6-api-key`(버전 1,
 프로젝트 `minutemark-portfolio`)** 범주에서 런타임 환경 변수로만 주입했다.
 키 원문·파일·커밋·문서 표에는 남기지 않았다.

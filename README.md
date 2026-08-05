@@ -222,8 +222,11 @@ token은 그대로이고 A6 라우터만 바뀐 사실을 확인했으며, 같�
 ## 라이선스
 
 소스 코드와 자체 제작 문서·이미지는 [MIT](./LICENSE)입니다. 번들된
-`samples/korean/*.wav`는 MIT 적용 대상이 아니며, 각 원본의 CC BY 조건과
-[저작자·출처·가공 표시](./PUBLIC_AUDIO_SAMPLES.md)를 따릅니다.
+`samples/korean/*.wav`는 MIT 적용 대상이 아닙니다. 기존 `ko-01`·`ko-02`는
+각 원본의 CC BY 조건을 따르고, KMSAV에서 선정한 추가 8개는
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)의
+비상업·동일조건변경허락 조건과 각 원본의 CC BY 조건을 함께 따릅니다. 자세한
+[저작자·출처·가공 표시](./PUBLIC_AUDIO_SAMPLES.md)를 확인하세요.
 고정·패치한 Firebase Auth 브라우저 모듈은
 [Apache License 2.0](./static/vendor/LICENSE.firebase-js-sdk.txt)을 따릅니다.
 
