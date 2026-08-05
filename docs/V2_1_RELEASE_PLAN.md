@@ -313,6 +313,12 @@ MM-PUBLIC-AUDIT 선정 결과에 따라 공개 한국어 샘플을 정확히 10�
 - 메타데이터: `app.py` `SAMPLES` 10개, 출처·저작자·라이선스·가공 표시
 - UI: 샘플 카드 길이는 API `duration_seconds`를 표시(하드코드 34초 제거)
 
+### 2026-08-05 로컬 브라우저 QA 증거
+
+- `wsl-local-chrome-bridge`의 `@chrome`은 Windows 제어 구성 요소 누락으로 `BLOCKED`였으며, 성공으로 바꾸지 않았다.
+- 허용된 격리 Windows Chrome headless DevTools fallback이 HEAD `f01d2acec9d1c77cf57b29f0b9ed00da83cc0129`에서 정확한 `1440×900` 및 `390×844`를 검증했다: count=10, expected IDs `action/decision/kmsav-01/03/04/05/06/07/08/10`, `horizontalOverflow=false`, `overlaps=[]`, `clipped=[]`, `allReachable=true`, console/network error events=`[]`.
+- `analyze`/A6 호출은 없었다. `/tmp/minutemark-chrome-qa.PznZp7/desktop-cdp-full.png` 및 `/tmp/minutemark-chrome-qa.PznZp7/mobile-cdp-full.png`는 임시 QA 산출물이므로 커밋하지 않는다.
+
 ### 증거 구분
 
 | 구분 | 대상 | 환경 | 상태 |
