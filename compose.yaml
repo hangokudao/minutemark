@@ -26,6 +26,7 @@ services:
       PERSISTENT_SAMPLE_CACHE_ENABLED: ${PERSISTENT_SAMPLE_CACHE_ENABLED:-false}
       MAX_TOTAL_AUDIO_BYTES: ${MAX_TOTAL_AUDIO_BYTES:-536870912}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-minutemark-portfolio}
+      FIREBASE_WEB_API_KEY: ${FIREBASE_WEB_API_KEY:-}
       GOOGLE_CLOUD_QUOTA_PROJECT: ${FIREBASE_PROJECT_ID:-minutemark-portfolio}
       MEETING_AUDIO_BUCKET: ${MEETING_AUDIO_BUCKET:-minutemark-portfolio-meetings}
       RUNTIME_SERVICE_ACCOUNT: ${RUNTIME_SERVICE_ACCOUNT:-minutemark-runtime@minutemark-portfolio.iam.gserviceaccount.com}

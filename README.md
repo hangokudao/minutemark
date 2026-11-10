@@ -165,7 +165,7 @@ V2는 실제 Google 인증·분석 저장·상세 복원·모바일 회의 삭�
 
 ## 로컬 실행
 
-`.env.example`을 `.env`로 복사하고 A6API 키를 넣습니다.
+`.env.example`을 `.env`로 복사하고 A6API 키를 넣습니다. 회원 로그인(Google)을 쓰려면 `FIREBASE_WEB_API_KEY`도 설정하세요. 이 값은 저장소에 커밋하지 않습니다.
 
 ```sh
 docker compose run --rm sample-downloader

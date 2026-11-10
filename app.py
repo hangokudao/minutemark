@@ -69,9 +69,7 @@ PERSISTENT_SAMPLE_CACHE_ENABLED = os.environ.get(
     "PERSISTENT_SAMPLE_CACHE_ENABLED", "false"
 ).strip().lower() in {"1", "true", "yes"}
 FIREBASE_WEB_CONFIG = {
-    "apiKey": os.environ.get(
-        "FIREBASE_WEB_API_KEY", "REMOVED_FIREBASE_KEY"
-    ),
+    "apiKey": os.environ.get("FIREBASE_WEB_API_KEY", ""),
     "authDomain": os.environ.get(
         "FIREBASE_AUTH_DOMAIN", "minutemark-portfolio.firebaseapp.com"
     ),
